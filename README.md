@@ -1,5 +1,5 @@
 # StatsMobileApp
-## Funkcjonlaności: 
+## Funkcjonalności: 
 - porównywanie statystyk z jednego meczu do całego sezonu
 - porównywanie statystyk między wieloma zawodnikami
 - wizualizacja danych poprzez wykresy radarowe i słupkowe
