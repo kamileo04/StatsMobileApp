@@ -4,8 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,7 +21,7 @@ fun App() {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
 
     val tiles = remember {
-        List(20) { Tile("Zależności $it") }
+        List(4) { Tile("Zależności $it") }
     }
 
     MaterialTheme {
@@ -43,12 +42,14 @@ fun App() {
                         if (currentScreen !is Screen.Home) {
                             IconButton(
                                 onClick = { currentScreen = Screen.Home },
-                                modifier = Modifier.size(48.dp) // Zwiększenie obszaru klikalnego
+                                modifier = Modifier.size(48.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Wstecz",
-                                    modifier = Modifier.size(32.dp) // Powiększona ikona
+                                Text(
+                                    text = "←",
+                                    fontSize = androidx.compose.ui.unit.TextUnit(32f, androidx.compose.ui.unit.TextUnitType.Sp),
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(bottom = 4.dp)
                                 )
                             }
                         }

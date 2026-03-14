@@ -28,20 +28,19 @@ fun TileCard(tile: Tile, onClick: () -> Unit) {
             .clickable(onClick = onClick)
     ) {
         Box(
-            contentAlignment = Alignment.Center,
             modifier = Modifier.fillMaxSize()
         ) {
             Image(
                 painter = painterResource(Res.drawable.ball),
                 contentDescription = null,
-                modifier = Modifier.fillMaxWidth(),
-                alignment = Alignment.Center,
-                contentScale = ContentScale.Crop
+                modifier = Modifier.fillMaxSize(), // Obrazek na całości
+                contentScale = ContentScale.Crop,
+                alpha = 0.4f // Półprzezroczystość zdjęcia
             )
             Text(
-                tile.title,
+                text = tile.title,
                 modifier = Modifier.align(Alignment.Center),
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 color = Color.Black
             )
         }
