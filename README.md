@@ -11,3 +11,4 @@
 - responsywny layout (dopasowanie do ekranów telefonów w pionie oraz wersji webowej przeglądarki)
 - intuicyjna obsługa i wsparcie dla Dark Mode / Light Mode
 - lokalne cachowanie danych (aby część podstawowych statystyk i ulubionych działała również bez dostępu do sieci)
+  
