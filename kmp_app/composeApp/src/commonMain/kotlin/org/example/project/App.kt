@@ -1,10 +1,6 @@
 package org.example.project
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -12,35 +8,84 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.example.project.navigation.Screen
+import kotlinx.coroutines.launch
+import org.example.project.data.model.Player
+import org.example.project.data.repository.SofaRepository
 import org.example.project.ui.components.AppDropdownSelect
-import org.example.project.ui.components.Tile
-import org.example.project.ui.components.TileCard
-import org.example.project.ui.screens.JsonViewerScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App() {
-    var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
+    val repository = remember { SofaRepository() }
+    val scope = rememberCoroutineScope()
 
-    val teamPlayers = remember {
-        mapOf(
-            "Drużyna A" to listOf("Robert Lewandowski", "Wojciech Szczęsny", "Piotr Zieliński"),
-            "Drużyna B" to listOf("Cristiano Ronaldo", "Bernardo Silva", "Bruno Fernandes"),
-            "Drużyna C" to listOf("Lionel Messi", "Angel Di Maria", "Julian Alvarez")
+    // --- Stan autoryzacji ---
+    var isLoggedIn by remember { mutableStateOf(false) }
+    var loginPassword by remember { mutableStateOf("") }
+    var loginError by remember { mutableStateOf<String?>(null) }
+    var loginLoading by remember { mutableStateOf(false) }
+
+    // --- Stan danych ---
+    var teams by remember { mutableStateOf<List<String>>(emptyList()) }
+    var selectedTeam by remember { mutableStateOf<String?>(null) }
+
+    var players by remember { mutableStateOf<List<Player>>(emptyList()) }
+    var selectedPlayer by remember { mutableStateOf<Player?>(null) }
+
+    var matchLabels by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) } // (label, match_id)
+    var selectedMatchId by remember { mutableStateOf<String?>(null) }
+
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var statusMessage by remember { mutableStateOf<String?>(null) }
+
+    // --- Pobieranie drużyn po zalogowaniu ---
+    LaunchedEffect(isLoggedIn) {
+        if (!isLoggedIn) return@LaunchedEffect
+        isLoading = true
+        errorMessage = null
+        repository.getTeams().fold(
+            onSuccess = { list ->
+                teams = list
+                selectedTeam = list.firstOrNull()
+            },
+            onFailure = { errorMessage = "Błąd pobierania drużyn: ${it.message}" }
         )
+        isLoading = false
     }
 
-    val teams = remember { teamPlayers.keys.toList() }
-    var selectedTeam by remember { mutableStateOf(teams[0]) }
+    // --- Pobieranie zawodników po wyborze drużyny ---
+    LaunchedEffect(selectedTeam) {
+        val team = selectedTeam ?: return@LaunchedEffect
+        isLoading = true
+        errorMessage = null
+        players = emptyList()
+        selectedPlayer = null
+        repository.getPlayers(team).fold(
+            onSuccess = { list ->
+                players = list
+                selectedPlayer = list.firstOrNull()
+            },
+            onFailure = { errorMessage = "Błąd pobierania zawodników: ${it.message}" }
+        )
+        isLoading = false
+    }
 
-    val players = teamPlayers[selectedTeam] ?: emptyList()
-    var selectedPlayer by remember { mutableStateOf(players[0]) }
-    
-    var showJson by remember { mutableStateOf(false) }
-
-    val tiles = remember {
-        List(4) { Tile("Zależności $it") }
+    // --- Pobieranie meczów po wyborze zawodnika ---
+    LaunchedEffect(selectedPlayer) {
+        val player = selectedPlayer ?: return@LaunchedEffect
+        isLoading = true
+        errorMessage = null
+        matchLabels = emptyList()
+        selectedMatchId = null
+        repository.getMatchHistory(player.id).fold(
+            onSuccess = { list ->
+                matchLabels = list.map { it.label to it.matchId }
+                selectedMatchId = list.firstOrNull()?.matchId
+            },
+            onFailure = { errorMessage = "Błąd pobierania historii meczów: ${it.message}" }
+        )
+        isLoading = false
     }
 
     MaterialTheme {
@@ -49,29 +94,9 @@ fun App() {
                 TopAppBar(
                     title = {
                         Text(
-                            text = when (val screen = currentScreen) {
-                                is Screen.Home -> "Staty Apka"
-                                is Screen.Details -> screen.title
-                                is Screen.JsonViewer -> screen.moduleName
-                            },
+                            text = if (isLoggedIn) "SofaMobile" else "SofaMobile – Logowanie",
                             style = MaterialTheme.typography.titleSmall
                         )
-                    },
-                    navigationIcon = {
-                        if (currentScreen !is Screen.Home) {
-                            IconButton(
-                                onClick = { currentScreen = Screen.Home },
-                                modifier = Modifier.size(48.dp)
-                            ) {
-                                Text(
-                                    text = "←",
-                                    fontSize = androidx.compose.ui.unit.TextUnit(32f, androidx.compose.ui.unit.TextUnitType.Sp),
-                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(bottom = 4.dp)
-                                )
-                            }
-                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -80,81 +105,137 @@ fun App() {
                 )
             }
         ) { innerPadding ->
-            Box(modifier = Modifier.padding(innerPadding)) {
-                when (val screen = currentScreen) {
-                    is Screen.Home -> {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp)
-                                .verticalScroll(rememberScrollState()),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            AppDropdownSelect(
-                                label = "Wybierz drużynę",
-                                options = teams,
-                                selectedOption = selectedTeam,
-                                onOptionSelected = { 
-                                    selectedTeam = it
-                                    selectedPlayer = teamPlayers[it]?.firstOrNull() ?: ""
+            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+
+                if (!isLoggedIn) {
+                    // ===== EKRAN LOGOWANIA =====
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(32.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("Zaloguj się", style = MaterialTheme.typography.headlineMedium)
+                        Spacer(Modifier.height(24.dp))
+                        OutlinedTextField(
+                            value = loginPassword,
+                            onValueChange = { loginPassword = it; loginError = null },
+                            label = { Text("Hasło") },
+                            singleLine = true,
+                            isError = loginError != null,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        if (loginError != null) {
+                            Text(loginError!!, color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(top = 4.dp))
+                        }
+                        Spacer(Modifier.height(16.dp))
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    loginLoading = true
+                                    loginError = null
+                                    repository.login(loginPassword).fold(
+                                        onSuccess = { resp ->
+                                            if (resp.success) isLoggedIn = true
+                                            else loginError = resp.message
+                                        },
+                                        onFailure = { loginError = "Błąd połączenia: ${it.message}" }
+                                    )
+                                    loginLoading = false
                                 }
-                            )
+                            },
+                            enabled = loginPassword.isNotBlank() && !loginLoading,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            if (loginLoading) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                            else Text("Zaloguj")
+                        }
+                    }
 
-                            AppDropdownSelect(
-                                label = "Wybierz zawodnika",
-                                options = players,
-                                selectedOption = selectedPlayer,
-                                onOptionSelected = { selectedPlayer = it }
-                            )
+                } else {
+                    // ===== EKRAN GŁÓWNY =====
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
 
+                        // Dropdowns – aktywne tylko gdy dane są gotowe
+                        AppDropdownSelect(
+                            label = "Drużyna",
+                            options = teams,
+                            selectedOption = selectedTeam ?: "",
+                            onOptionSelected = { selectedTeam = it }
+                        )
+
+                        AppDropdownSelect(
+                            label = "Zawodnik",
+                            options = players.map { it.name },
+                            selectedOption = selectedPlayer?.name ?: "",
+                            onOptionSelected = { name ->
+                                selectedPlayer = players.firstOrNull { it.name == name }
+                            }
+                        )
+
+                        AppDropdownSelect(
+                            label = "Mecz",
+                            options = matchLabels.map { it.first },
+                            selectedOption = matchLabels.firstOrNull { it.second == selectedMatchId }?.first ?: "",
+                            onOptionSelected = { label ->
+                                selectedMatchId = matchLabels.firstOrNull { it.first == label }?.second
+                            }
+                        )
+
+                        // Wskaźnik ładowania
+                        if (isLoading) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.Center
                             ) {
-                                Button(
-                                    onClick = { showJson = !showJson },
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text("Wyświetl JSON")
-                                }
-                                Button(
-                                    onClick = { /* No action */ },
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text("Druga akcja")
-                                }
+                                CircularProgressIndicator()
                             }
+                        }
 
-                            if (showJson) {
-                                Card(
-                                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                    )
-                                ) {
-                                    Text(
-                                        text = """{
-  "team": "$selectedTeam",
-  "player": "$selectedPlayer"
-}""",
-                                        modifier = Modifier.padding(16.dp),
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
+                        // Błędy
+                        errorMessage?.let { msg ->
+                            Card(
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = msg,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                    modifier = Modifier.padding(12.dp),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
                             }
                         }
-                    }
-                    is Screen.Details -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+
+                        // Akcja – pobranie raportu
+                        val canFetch = selectedPlayer != null && selectedMatchId != null && !isLoading
+                        Button(
+                            onClick = {
+                                statusMessage = "player_id=${selectedPlayer?.id}, match_id=$selectedMatchId"
+                            },
+                            enabled = canFetch,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Standardowa strona dla: ${screen.title}")
+                            Text("Pokaż raport meczowy")
                         }
-                    }
-                    is Screen.JsonViewer -> {
-                        JsonViewerScreen(screen.path)
+
+                        statusMessage?.let {
+                            Card(modifier = Modifier.fillMaxWidth()) {
+                                Text(it, modifier = Modifier.padding(12.dp),
+                                    style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
                     }
                 }
             }
