@@ -1,8 +1,11 @@
 task.md
 implementation_plan.md
 .vscode/*
-
 api/__pycache__/*
-__pycache__\*.pyc
-.vscode
 .idea
+
+
+api/__pycache__/new_config.cpython-314.pyc
+api/__pycache__/new_data_loader.cpython-314.pyc
+api/__pycache__/new_config.cpython-314.pyc
+api/__pycache__/new_data_loader.cpython-314.pyc
