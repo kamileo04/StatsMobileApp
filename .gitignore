@@ -1,5 +1,8 @@
 task.md
 implementation_plan.md
+.vscode/*
+
+api/__pycache__/*
 __pycache__\*.pyc
 .vscode
 .idea
