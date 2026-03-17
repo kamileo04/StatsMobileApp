@@ -33,9 +33,9 @@ fun TileCard(tile: Tile, onClick: () -> Unit) {
             Image(
                 painter = painterResource(Res.drawable.ball),
                 contentDescription = null,
-                modifier = Modifier.fillMaxSize(), // Obrazek na całości
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
-                alpha = 0.4f // Półprzezroczystość zdjęcia
+                alpha = 0.4f
             )
             Text(
                 text = tile.title,
