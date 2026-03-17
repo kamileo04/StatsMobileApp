@@ -5,7 +5,7 @@ from typing import List, Optional, Dict, Any
 
 import new_data_loader as data
 from new_config import LEAGUE_NAME
-DEFAULT_SEASON = "2024/2025"
+DEFAULT_SEASON = "2025/2026"
 
 app = FastAPI(
     title="SofaMobile API",
@@ -73,7 +73,7 @@ def read_root():
 
 @app.post("/login", response_model=LoginResponse)
 def login(request: LoginRequest):
-    if request.password in ("test", "TSP"):
+    if request.password in ("TSP"):
         return LoginResponse(success=True, token="secret_token_123", message="Zalogowano pomyślnie")
     raise HTTPException(status_code=401, detail="Nieprawidłowe hasło")
 
