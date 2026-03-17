@@ -6,7 +6,7 @@ from typing import List, Optional, Dict, Any
 
 import new_data_loader as data
 from new_config import LEAGUE_NAME
-DEFAULT_SEASON = "2025/2026"
+DEFAULT_SEASON = "25-26"
 
 
 API_PASSWORD = os.environ.get("API_PASSWORD", "")
