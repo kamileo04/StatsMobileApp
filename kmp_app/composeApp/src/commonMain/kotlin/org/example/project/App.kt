@@ -11,7 +11,9 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.example.project.data.model.Player
 import org.example.project.data.repository.SofaRepository
+import org.example.project.sensor.rememberSensorManager
 import org.example.project.ui.components.AppDropdownSelect
+import org.example.project.ui.components.PhysicsBall
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,7 +90,10 @@ fun App() {
         isLoading = false
     }
 
+    val sensorManager = rememberSensorManager()
+
     MaterialTheme {
+        Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -239,6 +244,10 @@ fun App() {
                     }
                 }
             }
-        }
-    }
+        } // end Scaffold
+
+        // Physics ball overlay — topmost layer across all screens
+        PhysicsBall(sensorManager = sensorManager)
+        } // end Box
+    } // end MaterialTheme
 }
