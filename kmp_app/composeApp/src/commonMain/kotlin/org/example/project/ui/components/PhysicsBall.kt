@@ -2,7 +2,14 @@ package org.example.project.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -128,51 +135,65 @@ fun PhysicsBall(sensorManager: SensorManager) {
         }
     }
 
-    Canvas(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragStart = { offset ->
-                        // Only attach if the touch is on the ball
-                        val dx = offset.x - ballX
-                        val dy = offset.y - ballY
-                        if (sqrt(dx * dx + dy * dy) <= BALL_RADIUS * 2f) {
-                            isDragging = true
-                            dragOffsetX = dx
-                            dragOffsetY = dy
-                            velocityTracker.resetTracking()
-                        }
-                    },
-                    onDrag = { change, _ ->
-                        if (isDragging) {
-                            velocityTracker.addPointerInputChange(change)
-                            ballX = change.position.x - dragOffsetX
-                            ballY = change.position.y - dragOffsetY
-                            // clamp to screen
-                            ballX = ballX.coerceIn(BALL_RADIUS, canvasW - BALL_RADIUS)
-                            ballY = ballY.coerceIn(BALL_RADIUS, canvasH - BALL_RADIUS)
-                        }
-                    },
-                    onDragEnd = {
-                        if (isDragging) {
-                            isDragging = false
-                            val v: Velocity = velocityTracker.calculateVelocity()
-                            velX = v.x.coerceIn(-3000f, 3000f)
-                            velY = v.y.coerceIn(-3000f, 3000f)
-                        }
-                    },
-                    onDragCancel = {
-                        isDragging = false
-                        velX = 0f; velY = 0f
-                    }
-                )
+            .onSizeChanged {
+                canvasW = it.width.toFloat()
+                canvasH = it.height.toFloat()
             }
     ) {
-        canvasW = size.width
-        canvasH = size.height
+        val density = LocalDensity.current
+        val hitboxSizePx = BALL_RADIUS * 3f
+        val hitboxSizeDp = with(density) { hitboxSizePx.toDp() }
+        val centerOffset = hitboxSizePx / 2f
 
-        drawBall(ballX, ballY, isDragging)
+        Canvas(
+            modifier = Modifier
+                .offset {
+                    IntOffset(
+                        (ballX - centerOffset).roundToInt(),
+                        (ballY - centerOffset).roundToInt()
+                    )
+                }
+                .size(hitboxSizeDp)
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = { offset ->
+                            val dx = offset.x - centerOffset
+                            val dy = offset.y - centerOffset
+                            if (sqrt(dx * dx + dy * dy) <= BALL_RADIUS) {
+                                isDragging = true
+                                velocityTracker.resetTracking()
+                            }
+                        },
+                        onDrag = { change, dragAmount ->
+                            if (isDragging) {
+                                velocityTracker.addPointerInputChange(change)
+                                ballX = (ballX + dragAmount.x).coerceIn(BALL_RADIUS, canvasW - BALL_RADIUS)
+                                ballY = (ballY + dragAmount.y).coerceIn(BALL_RADIUS, canvasH - BALL_RADIUS)
+                                change.consume()
+                            }
+                        },
+                        onDragEnd = {
+                            if (isDragging) {
+                                isDragging = false
+                                val v = velocityTracker.calculateVelocity()
+                                velX = v.x.coerceIn(-3000f, 3000f)
+                                velY = v.y.coerceIn(-3000f, 3000f)
+                            }
+                        },
+                        onDragCancel = {
+                            if (isDragging) {
+                                isDragging = false
+                                velX = 0f; velY = 0f
+                            }
+                        }
+                    )
+                }
+        ) {
+            drawBall(centerOffset, centerOffset, isDragging)
+        }
     }
 }
 

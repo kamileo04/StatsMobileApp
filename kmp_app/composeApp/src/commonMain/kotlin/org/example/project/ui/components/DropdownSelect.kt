@@ -32,7 +32,7 @@ fun AppDropdownSelect(
             label = { Text(label) },
             trailingIcon = {
                 Text(
-                    text = if (expanded) "▲" else "▼",
+                    text = if (expanded) "^" else "v",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(end = 8.dp)
