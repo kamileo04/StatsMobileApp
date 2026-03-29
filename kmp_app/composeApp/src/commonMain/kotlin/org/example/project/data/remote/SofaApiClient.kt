@@ -62,8 +62,10 @@ class SofaApiClient(private val baseUrl: String) {
         httpClient.get("$baseUrl/season_stats/$playerId").body()
         
     /** GET /player_percentiles/{player_id}?template={template} */
-    suspend fun getPlayerPercentiles(playerId: Int, template: String = "Auto"): PlayerPercentilesResponse =
-        httpClient.get("$baseUrl/player_percentiles/$playerId") {
+    suspend fun getPlayerPercentiles(playerId: Int, template: String = "Auto", minMinutes: Int = 300): PlayerPercentilesResponse {
+        return httpClient.get("$baseUrl/player_percentiles/$playerId") {
             parameter("template", template)
+            parameter("min_minutes", minMinutes)
         }.body()
+    }
 }

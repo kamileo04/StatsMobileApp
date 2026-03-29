@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.example.project.data.model.PlayerPercentilesResponse
 import org.example.project.data.repository.SofaRepository
+import org.example.project.ui.components.AppDropdownSelect
 import org.example.project.ui.components.PlayerFullStatsTable
 import org.example.project.ui.components.PlayerPercentileChart
 
@@ -26,12 +27,17 @@ fun PlayerSeasonScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var percentilesData by remember { mutableStateOf<PlayerPercentilesResponse?>(null) }
     
-    // Hardcodowane dla testu auto-template, w przyszłości ze stanu UI
-    val selectedTemplate = "Auto"
+    // Filtry
+    var selectedTemplate by remember { mutableStateOf("Auto") }
+    val templates = listOf("Auto", "ST", "W", "CAM", "RM/LM", "CM/CDM", "LB", "RB", "LB/RB", "CB", "GK")
 
-    LaunchedEffect(playerId) {
+    var selectedMinMinutes by remember { mutableStateOf("300") }
+    val minutesOptions = listOf("0", "100", "300", "500", "900")
+
+    LaunchedEffect(playerId, selectedTemplate, selectedMinMinutes) {
         isLoading = true
-        repository.getPlayerPercentiles(playerId, selectedTemplate)
+        val minMinsInt = selectedMinMinutes.toIntOrNull() ?: 300
+        repository.getPlayerPercentiles(playerId, selectedTemplate, minMinsInt)
             .onSuccess { data ->
                 percentilesData = data
                 errorMessage = null
@@ -70,10 +76,37 @@ fun PlayerSeasonScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 16.dp)
                 )
+                // Formularz filtrów
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text("Personalizacja porównania", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom=8.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                AppDropdownSelect(
+                                    label = "Pozycja (Wykres)",
+                                    options = templates,
+                                    selectedOption = selectedTemplate,
+                                    onOptionSelected = { selectedTemplate = it }
+                                )
+                            }
+                            Box(modifier = Modifier.weight(1f)) {
+                                AppDropdownSelect(
+                                    label = "Min. Minuty (%yl)",
+                                    options = minutesOptions,
+                                    selectedOption = selectedMinMinutes,
+                                    onOptionSelected = { selectedMinMinutes = it }
+                                )
+                            }
+                        }
+                    }
+                }
                 
                 // Wykres Słupkowy Percentyli dla wybranej pozycji (Zastępstwo dla Pizza Chart)
                 PlayerPercentileChart(
-                    title = "Profil (${data.position})", 
+                    title = "Profil (${data.position}) vs $selectedMinMinutes+ min", 
                     stats = data.radarChart
                 )
                 

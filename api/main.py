@@ -201,13 +201,13 @@ def get_season_stats(player_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/player_percentiles/{player_id}", response_model=PlayerPercentilesResponse)
-def get_player_percentiles(player_id: int, template: str = "Auto"):
+def get_player_percentiles(player_id: int, template: str = "Auto", min_minutes: int = 300):
     """
     Kalkuluje i zwraca gotowe percentyle dla wykresów oraz tabel.
     Odciąża to logikę klienta KMP, używane m.in. przy Radar Chart/Bar Chart.
     """
     try:
-        res = data.get_player_radar_and_table_stats(player_id, DEFAULT_SEASON, override_position=template)
+        res = data.get_player_radar_and_table_stats(player_id, DEFAULT_SEASON, override_position=template, min_minutes=min_minutes)
         if not res:
             raise HTTPException(
                 status_code=404,

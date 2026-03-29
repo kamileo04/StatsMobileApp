@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.example.project.data.model.FullTableStatItem
+import org.example.project.ui.utils.STATS_CATEGORIES
 import org.example.project.ui.utils.toFormattedString
 
 @Composable
@@ -44,10 +45,42 @@ fun PlayerFullStatsTable(stats: List<FullTableStatItem>) {
             
             Divider()
 
-            // Wiersze
-            stats.forEach { stat ->
-                FullStatTableRow(stat)
-                Divider(color = Color.LightGray.copy(alpha = 0.5f))
+            // Wiersze Pogrupowane wg Kategorii
+            STATS_CATEGORIES.forEach { (catName, keys) ->
+                val catStats = stats.filter { it.statKey in keys }
+                if (catStats.isNotEmpty()) {
+                    Text(
+                        text = catName,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 8.dp, top = 16.dp, bottom = 4.dp)
+                    )
+                    Divider(thickness = 2.dp, color = MaterialTheme.colorScheme.primary.copy(alpha=0.3f))
+                    
+                    catStats.forEach { stat ->
+                        FullStatTableRow(stat)
+                        Divider(color = Color.LightGray.copy(alpha = 0.3f))
+                    }
+                }
+            }
+            
+            // Inne statystyki
+            val mappedKeys = STATS_CATEGORIES.values.flatten()
+            val otherStats = stats.filter { it.statKey !in mappedKeys }
+            if (otherStats.isNotEmpty()) {
+                Text(
+                    text = "Inne",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 8.dp, top = 16.dp, bottom = 4.dp)
+                )
+                Divider(thickness = 2.dp, color = MaterialTheme.colorScheme.primary.copy(alpha=0.3f))
+                otherStats.forEach { stat ->
+                    FullStatTableRow(stat)
+                    Divider(color = Color.LightGray.copy(alpha = 0.3f))
+                }
             }
         }
     }

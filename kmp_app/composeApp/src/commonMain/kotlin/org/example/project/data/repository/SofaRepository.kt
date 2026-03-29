@@ -72,7 +72,7 @@ class SofaRepository(
     /**
      * Pobiera znormalizowane percentyle gracza (do wykresów i tabeli).
      */
-    suspend fun getPlayerPercentiles(playerId: Int, template: String = "Auto"): Result<PlayerPercentilesResponse> = runCatching {
-        apiClient.getPlayerPercentiles(playerId, template)
+    suspend fun getPlayerPercentiles(playerId: Int, template: String = "Auto", minMinutes: Int = 300): Result<PlayerPercentilesResponse> = runCatching {
+        apiClient.getPlayerPercentiles(playerId, template, minMinutes)
     }
 }

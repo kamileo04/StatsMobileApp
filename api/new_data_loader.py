@@ -251,7 +251,7 @@ def get_player_season_stats(player_id: int, season_year: str) -> dict:
 
     return {}
 
-def get_player_radar_and_table_stats(player_id: int, season_year: str, override_position="Auto"):
+def get_player_radar_and_table_stats(player_id: int, season_year: str, override_position="Auto", min_minutes: int = 300):
     """
     Zwraca kompleksowe dane JSON potrzebne dla UI KMP:
     1. radar_chart: znormalizowane % dla danej pozycji (z configu).
@@ -297,14 +297,14 @@ def get_player_radar_and_table_stats(player_id: int, season_year: str, override_
         
     df['totalSeasonMinutes_stats'] = pd.to_numeric(df.get('minutesPlayed', 0), errors='coerce').fillna(0)
     
-    df_group = df[(df['Best_Pos'] == pos) & (df['totalSeasonMinutes_stats'] >= 300)]
+    df_group = df[(df['Best_Pos'] == pos) & (df['totalSeasonMinutes_stats'] >= min_minutes)]
     if len(df_group) < 5:
         fallback_map = {"ST": "F", "W": "M", "CAM": "M", "RM/LM": "M", "CM/CDM": "M", "LB": "D", "RB": "D", "LB/RB": "D", "CB": "D"}
         broad_pos = fallback_map.get(pos, raw_pos)
-        df_group = df[(df['position'] == broad_pos) & (df['totalSeasonMinutes_stats'] >= 300)]
+        df_group = df[(df['position'] == broad_pos) & (df['totalSeasonMinutes_stats'] >= min_minutes)]
         
     if df_group.empty:
-        df_group = df[df['totalSeasonMinutes_stats'] >= 300]
+        df_group = df[df['totalSeasonMinutes_stats'] >= min_minutes]
         
     group_size = len(df_group)
     
@@ -319,6 +319,23 @@ def get_player_radar_and_table_stats(player_id: int, season_year: str, override_
             val = float(p_row.get(stat, 0) or 0)
             dist = df_group[stat].fillna(0).astype(float)
             
+            # Normalizacja P90 (żeby na wykresach nie faworyzować po liczbie minut)
+            is_rating = (stat == 'rating')
+            is_raw = ('Percentage' in stat or '%' in stat or stat in ['appearances', 'minutesPlayed', 'totalSeasonMinutes_stats'])
+            
+            if is_rating:
+                apps = float(p_row.get('appearances', 0))
+                if apps == 0 and p_minutes > 0: apps = 1
+                if apps > 0: val = val / apps
+                
+                g_apps = df_group['appearances'].fillna(0).astype(float).replace(0, 1)
+                dist = dist / g_apps
+            elif not is_raw:
+                val = (val / p_minutes) * 90 if p_minutes > 0 else 0
+                
+                g_mins = df_group['totalSeasonMinutes_stats'].fillna(0).replace(0, 1)
+                dist = (dist / g_mins) * 90
+            
             perc = percentileofscore(dist, val, kind='weak')
             
             if stat in LOWER_IS_BETTER_STATS:
@@ -327,10 +344,10 @@ def get_player_radar_and_table_stats(player_id: int, season_year: str, override_
             median = float(dist.median())
             radar_chart.append({
                 "statKey": stat,
-                "label": STATS_PL_MAP.get(stat, stat),
-                "value": val,
+                "label": STATS_PL_MAP.get(stat, stat), # Upewnijmy się, że na froncie to się wyświetla elegancko!
+                "value": round(val, 2),
                 "percentile": int(perc),
-                "median": median
+                "median": round(median, 2)
             })
 
     full_table = []
