@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.example.project.data.model.Player
@@ -17,6 +18,31 @@ import org.example.project.ui.components.PhysicsBall
 import org.example.project.navigation.Screen
 import org.example.project.ui.screens.PlayerSeasonScreen
 import org.example.project.ui.screens.MatchReportScreen
+
+val BaseColor = Color(0xFF0458A7)
+val AccentColor = Color(0xFFE53935)
+val BgColor = Color(0xFFFFFFFF)
+
+val CustomColorScheme = lightColorScheme(
+    primary = BaseColor,
+    onPrimary = Color.White,
+    primaryContainer = BaseColor,
+    onPrimaryContainer = Color.White,
+    secondary = AccentColor,
+    onSecondary = Color.White,
+    secondaryContainer = AccentColor,
+    onSecondaryContainer = Color.White,
+    tertiary = AccentColor,
+    onTertiary = Color.White,
+    background = BgColor,
+    onBackground = Color.Black,
+    surface = BgColor,
+    onSurface = Color.Black,
+    surfaceVariant = Color(0xFFF5F5F5),
+    onSurfaceVariant = Color.Black,
+    error = AccentColor,
+    onError = Color.White
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,7 +123,7 @@ fun App() {
 
     val sensorManager = rememberSensorManager()
 
-    MaterialTheme {
+    MaterialTheme(colorScheme = CustomColorScheme) {
         Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
