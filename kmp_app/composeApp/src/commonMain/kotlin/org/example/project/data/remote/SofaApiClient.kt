@@ -25,6 +25,7 @@ val httpClient = HttpClient {
         logger = Logger.DEFAULT
         level = LogLevel.INFO
     }
+    expectSuccess = true
 }
 
 /**
@@ -59,4 +60,10 @@ class SofaApiClient(private val baseUrl: String) {
     /** GET /season_stats/{player_id} */
     suspend fun getSeasonStats(playerId: Int): SeasonStatsResponse =
         httpClient.get("$baseUrl/season_stats/$playerId").body()
+        
+    /** GET /player_percentiles/{player_id}?template={template} */
+    suspend fun getPlayerPercentiles(playerId: Int, template: String = "Auto"): PlayerPercentilesResponse =
+        httpClient.get("$baseUrl/player_percentiles/$playerId") {
+            parameter("template", template)
+        }.body()
 }

@@ -67,3 +67,34 @@ data class SeasonStatsResponse(
     val season: String,
     val stats: Map<String, kotlinx.serialization.json.JsonElement>
 )
+
+// ---------- /player_percentiles/{player_id} ----------
+
+@Serializable
+data class RadarStatItem(
+    val statKey: String,
+    val label: String,
+    val value: Double,
+    val percentile: Int,
+    val median: Double
+)
+
+@Serializable
+data class FullTableStatItem(
+    val statKey: String,
+    val label: String,
+    val totalValue: Double,
+    val p90Value: Double,
+    val percentile: Int,
+    val median: Double
+)
+
+@Serializable
+data class PlayerPercentilesResponse(
+    val playerName: String,
+    val position: String,
+    val groupSize: Int,
+    val minutes: Double,
+    val radarChart: List<RadarStatItem>,
+    val fullTable: List<FullTableStatItem>
+)

@@ -68,4 +68,11 @@ class SofaRepository(
     suspend fun getSeasonStats(playerId: Int): Result<SeasonStatsResponse> = runCatching {
         apiClient.getSeasonStats(playerId)
     }
+
+    /**
+     * Pobiera znormalizowane percentyle gracza (do wykresów i tabeli).
+     */
+    suspend fun getPlayerPercentiles(playerId: Int, template: String = "Auto"): Result<PlayerPercentilesResponse> = runCatching {
+        apiClient.getPlayerPercentiles(playerId, template)
+    }
 }

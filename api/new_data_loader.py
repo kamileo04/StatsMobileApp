@@ -1,7 +1,11 @@
 import json
 import os
 
-from new_config import DATA_DIR
+from new_config import DATA_DIR, PIZZA_CHART_TEMPLATES, LOWER_IS_BETTER_STATS, STATS_PL_MAP
+
+import pandas as pd
+import numpy as np
+from scipy.stats import percentileofscore
 
 
 if os.environ.get("DOCKER_ENV"):
@@ -246,3 +250,150 @@ def get_player_season_stats(player_id: int, season_year: str) -> dict:
             return row
 
     return {}
+
+def get_player_radar_and_table_stats(player_id: int, season_year: str, override_position="Auto"):
+    """
+    Zwraca kompleksowe dane JSON potrzebne dla UI KMP:
+    1. radar_chart: znormalizowane % dla danej pozycji (z configu).
+    2. full_table: każda statystyka z medianą, percentylem i wartością P90.
+    """
+    db_file = os.path.join(SHARED_DATA_DIR, f"player_database_{season_year.replace('/', '-')}.json")
+    if not os.path.exists(db_file):
+        return None
+        
+    try:
+        df = pd.read_json(db_file)
+    except Exception as e:
+        print(f"Error loading full league data: {e}")
+        return None
+        
+    if df.empty:
+        return None
+        
+    df['player id'] = pd.to_numeric(df['player id'], errors='coerce')
+    p_row = df[df['player id'] == player_id]
+    if p_row.empty:
+        return None
+    p_row = p_row.iloc[0]
+    
+    p_name = p_row.get('name', 'Nieznany')
+    p_minutes = float(p_row.get('totalSeasonMinutes_stats', p_row.get('minutesPlayed', 0)))
+    
+    calc_pos = p_row.get('Calculated Position', 'N/A')
+    raw_pos = p_row.get('position', 'N/A')
+    detailed_positions = ["ST", "W", "CAM", "RM/LM", "CM/CDM", "LB", "RB", "LB/RB", "CB", "GK"]
+    
+    if override_position and override_position != "Auto":
+        pos = override_position
+    elif calc_pos in detailed_positions:
+        pos = calc_pos
+    else:
+        pos = raw_pos
+        
+    if 'Calculated Position' in df.columns:
+        df['Best_Pos'] = np.where(df['Calculated Position'].isin(detailed_positions), df['Calculated Position'], df['position'])
+    else:
+        df['Best_Pos'] = df['position']
+        
+    df['totalSeasonMinutes_stats'] = pd.to_numeric(df.get('minutesPlayed', 0), errors='coerce').fillna(0)
+    
+    df_group = df[(df['Best_Pos'] == pos) & (df['totalSeasonMinutes_stats'] >= 300)]
+    if len(df_group) < 5:
+        fallback_map = {"ST": "F", "W": "M", "CAM": "M", "RM/LM": "M", "CM/CDM": "M", "LB": "D", "RB": "D", "LB/RB": "D", "CB": "D"}
+        broad_pos = fallback_map.get(pos, raw_pos)
+        df_group = df[(df['position'] == broad_pos) & (df['totalSeasonMinutes_stats'] >= 300)]
+        
+    if df_group.empty:
+        df_group = df[df['totalSeasonMinutes_stats'] >= 300]
+        
+    group_size = len(df_group)
+    
+    radar_chart = []
+    stats_to_check = PIZZA_CHART_TEMPLATES.get(pos, [])
+    if not stats_to_check:
+        fallback_template_pos = {"RM/LM": "W", "LB/RB": "LB", "CM": "CM/CDM"}.get(pos, raw_pos)
+        stats_to_check = PIZZA_CHART_TEMPLATES.get(fallback_template_pos, PIZZA_CHART_TEMPLATES.get("CM/CDM", []))
+        
+    for stat in stats_to_check:
+        if stat in df.columns:
+            val = float(p_row.get(stat, 0) or 0)
+            dist = df_group[stat].fillna(0).astype(float)
+            
+            perc = percentileofscore(dist, val, kind='weak')
+            
+            if stat in LOWER_IS_BETTER_STATS:
+                perc = 100 - perc
+                
+            median = float(dist.median())
+            radar_chart.append({
+                "statKey": stat,
+                "label": STATS_PL_MAP.get(stat, stat),
+                "value": val,
+                "percentile": int(perc),
+                "median": median
+            })
+
+    full_table = []
+    apps = float(p_row.get('appearances', 0))
+    if apps == 0 and p_minutes > 0: apps = 1
+    
+    ignore = ['player id', 'name', 'position', 'Calculated Position', 'Best_Pos', 'team', 'teamName', 'slug', 'id']
+    
+    for col in p_row.index:
+        if col in ignore or isinstance(p_row[col], (dict, list, str)): continue
+        if col not in STATS_PL_MAP: continue
+        
+        try: val_total = float(p_row[col])
+        except: continue
+        
+        val_p90 = 0.0
+        if col == 'rating':
+            val_p90 = val_total / apps if apps > 0 else 0
+            val_total = val_p90
+        elif 'Percentage' in col or '%' in col or col in ['appearances', 'minutesPlayed', 'totalSeasonMinutes_stats']:
+            val_p90 = val_total
+        else:
+            val_p90 = (val_total / p_minutes) * 90 if p_minutes > 0 else 0
+            
+        percentile = 0
+        median = 0.0
+        if not df_group.empty and col in df_group.columns:
+            group_vals = df_group[col].fillna(0).astype(float)
+            
+            if col == 'rating':
+                g_apps = df_group['appearances'].fillna(0).astype(float).replace(0, 1)
+                group_vals = group_vals / g_apps
+                compare_val = val_p90
+            elif col not in ['appearances', 'minutesPlayed', 'totalSeasonMinutes_stats'] and 'Percent' not in col:
+                g_mins = df_group['totalSeasonMinutes_stats'].fillna(0).replace(0, 1)
+                group_vals = (group_vals / g_mins) * 90
+                compare_val = val_p90
+            else:
+                compare_val = val_total
+                
+            percentile = percentileofscore(group_vals, compare_val, kind='weak')
+            median = float(np.median(group_vals))
+            
+            if col in LOWER_IS_BETTER_STATS:
+                percentile = 100 - percentile
+                
+        if abs(val_total) > 0.001 or col == 'rating':
+            full_table.append({
+                "statKey": col,
+                "label": STATS_PL_MAP.get(col, col),
+                "totalValue": round(val_total, 2),
+                "p90Value": round(val_p90, 2),
+                "percentile": int(percentile),
+                "median": round(median, 2)
+            })
+            
+    full_table.sort(key=lambda x: x["label"])
+
+    return {
+        "playerName": p_name,
+        "position": pos,
+        "groupSize": group_size,
+        "minutes": p_minutes,
+        "radarChart": radar_chart,
+        "fullTable": full_table
+    }

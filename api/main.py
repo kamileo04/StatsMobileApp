@@ -68,6 +68,29 @@ class SeasonStatsResponse(BaseModel):
     season: str
     stats: Dict[str, Any]
 
+class RadarStatItem(BaseModel):
+    statKey: str
+    label: str
+    value: float
+    percentile: int
+    median: float
+
+class FullTableStatItem(BaseModel):
+    statKey: str
+    label: str
+    totalValue: float
+    p90Value: float
+    percentile: int
+    median: float
+
+class PlayerPercentilesResponse(BaseModel):
+    playerName: str
+    position: str
+    groupSize: int
+    minutes: float
+    radarChart: List[RadarStatItem]
+    fullTable: List[FullTableStatItem]
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -172,6 +195,33 @@ def get_season_stats(player_id: int):
                 detail=f"Brak danych sezonowych dla zawodnika o ID {player_id}"
             )
         return SeasonStatsResponse(player_id=player_id, season=DEFAULT_SEASON, stats=stats)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/player_percentiles/{player_id}", response_model=PlayerPercentilesResponse)
+def get_player_percentiles(player_id: int, template: str = "Auto"):
+    """
+    Kalkuluje i zwraca gotowe percentyle dla wykresów oraz tabel.
+    Odciąża to logikę klienta KMP, używane m.in. przy Radar Chart/Bar Chart.
+    """
+    try:
+        res = data.get_player_radar_and_table_stats(player_id, DEFAULT_SEASON, override_position=template)
+        if not res:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Brak danych lub błędny profil dla zawodnika o ID {player_id}"
+            )
+            
+        return PlayerPercentilesResponse(
+            playerName=res["playerName"],
+            position=res["position"],
+            groupSize=res["groupSize"],
+            minutes=res["minutes"],
+            radarChart=res["radarChart"],
+            fullTable=res["fullTable"]
+        )
     except HTTPException:
         raise
     except Exception as e:
