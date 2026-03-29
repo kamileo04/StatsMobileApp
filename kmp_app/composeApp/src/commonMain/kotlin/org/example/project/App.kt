@@ -14,12 +14,17 @@ import org.example.project.data.repository.SofaRepository
 import org.example.project.sensor.rememberSensorManager
 import org.example.project.ui.components.AppDropdownSelect
 import org.example.project.ui.components.PhysicsBall
+import org.example.project.navigation.Screen
+import org.example.project.ui.screens.PlayerSeasonScreen
+import org.example.project.ui.screens.MatchReportScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App() {
     val repository = remember { SofaRepository() }
     val scope = rememberCoroutineScope()
+
+    var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
 
     // --- Stan autoryzacji ---
     var isLoggedIn by remember { mutableStateOf(false) }
@@ -161,9 +166,11 @@ fun App() {
                     }
 
                 } else {
-                    // ===== EKRAN GŁÓWNY =====
-                    Column(
-                        modifier = Modifier
+                    // ===== GŁÓWNY ROUTER NAWIGACJI =====
+                    when(val screen = currentScreen) {
+                        is Screen.Home -> {
+                            Column(
+                                modifier = Modifier
                             .fillMaxSize()
                             .padding(16.dp)
                             .verticalScroll(rememberScrollState()),
@@ -224,21 +231,62 @@ fun App() {
                         }
 
                         // Akcja – pobranie raportu
+                        // Ostatnia strzelba
                         val canFetch = selectedPlayer != null && selectedMatchId != null && !isLoading
                         Button(
                             onClick = {
-                                statusMessage = "player_id=${selectedPlayer?.id}, match_id=$selectedMatchId"
+                                selectedPlayer?.let { player ->
+                                    selectedMatchId?.let { match ->
+                                        currentScreen = Screen.MatchReport(player.id, match)
+                                    }
+                                }
                             },
                             enabled = canFetch,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Pokaż raport meczowy")
                         }
+                        
+                        // NOWY PRZYCISK - PODSUMOWANIE SEZONU
+                        Button(
+                            onClick = {
+                                selectedPlayer?.let {
+                                    currentScreen = Screen.PlayerSeason(it.id)
+                                }
+                            },
+                            enabled = selectedPlayer != null && !isLoading,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Pokaż wykresy powiązane z pozycją gracza")
+                        }
 
                         statusMessage?.let {
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 Text(it, modifier = Modifier.padding(12.dp),
                                     style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+                                is Screen.PlayerSeason -> {
+                            PlayerSeasonScreen(
+                                playerId = screen.playerId,
+                                repository = repository,
+                                onBackClick = { currentScreen = Screen.Home }
+                            )
+                        }
+                        is Screen.MatchReport -> {
+                            MatchReportScreen(
+                                playerId = screen.playerId,
+                                matchId = screen.matchId,
+                                repository = repository,
+                                onBackClick = { currentScreen = Screen.Home }
+                            )
+                        }
+                        else -> {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text("Ekran nie zaimplementowany")
+                                Button(onClick = { currentScreen = Screen.Home }) { Text("Wróć") }
                             }
                         }
                     }
