@@ -16,6 +16,7 @@ import org.example.project.sensor.rememberSensorManager
 import org.example.project.ui.components.AppDropdownSelect
 import org.example.project.ui.components.PhysicsBall
 import org.example.project.navigation.Screen
+import org.example.project.navigation.BackHandler
 import org.example.project.ui.screens.PlayerSeasonScreen
 import org.example.project.ui.screens.MatchReportScreen
 
@@ -50,7 +51,18 @@ fun App() {
     val repository = remember { SofaRepository() }
     val scope = rememberCoroutineScope()
 
-    var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
+    var screenStack by remember { mutableStateOf(listOf<Screen>(Screen.Home)) }
+    val currentScreen = screenStack.lastOrNull() ?: Screen.Home
+
+    val popScreen: () -> Unit = {
+        if (screenStack.size > 1) {
+            screenStack = screenStack.dropLast(1)
+        }
+    }
+
+    val navigateTo: (Screen) -> Unit = { screen ->
+        screenStack = screenStack + screen
+    }
 
     // --- Stan autoryzacji ---
     var isLoggedIn by remember { mutableStateOf(false) }
@@ -122,6 +134,8 @@ fun App() {
     }
 
     val sensorManager = rememberSensorManager()
+
+    BackHandler(isEnabled = screenStack.size > 1, onBack = popScreen)
 
     MaterialTheme(colorScheme = CustomColorScheme) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -263,7 +277,7 @@ fun App() {
                             onClick = {
                                 selectedPlayer?.let { player ->
                                     selectedMatchId?.let { match ->
-                                        currentScreen = Screen.MatchReport(player.id, match)
+                                        navigateTo(Screen.MatchReport(player.id, match))
                                     }
                                 }
                             },
@@ -277,7 +291,7 @@ fun App() {
                         Button(
                             onClick = {
                                 selectedPlayer?.let {
-                                    currentScreen = Screen.PlayerSeason(it.id)
+                                    navigateTo(Screen.PlayerSeason(it.id))
                                 }
                             },
                             enabled = selectedPlayer != null && !isLoading,
@@ -294,11 +308,11 @@ fun App() {
                         }
                     }
                 }
-                                is Screen.PlayerSeason -> {
+                        is Screen.PlayerSeason -> {
                             PlayerSeasonScreen(
                                 playerId = screen.playerId,
                                 repository = repository,
-                                onBackClick = { currentScreen = Screen.Home }
+                                onBackClick = popScreen
                             )
                         }
                         is Screen.MatchReport -> {
@@ -306,13 +320,13 @@ fun App() {
                                 playerId = screen.playerId,
                                 matchId = screen.matchId,
                                 repository = repository,
-                                onBackClick = { currentScreen = Screen.Home }
+                                onBackClick = popScreen
                             )
                         }
                         else -> {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text("Ekran nie zaimplementowany")
-                                Button(onClick = { currentScreen = Screen.Home }) { Text("Wróć") }
+                                Button(onClick = popScreen) { Text("Wróć") }
                             }
                         }
                     }
