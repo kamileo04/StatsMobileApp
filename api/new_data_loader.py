@@ -88,6 +88,22 @@ def get_player_match_history(player_id: int, season_year: str, league_name: str)
         except Exception as e:
             print(f"Błąd wczytywania all_matches: {e}")
 
+    # Fallback: custom matches z 2026 roku
+    cache_file = os.path.join(SHARED_DATA_DIR, "custom_matches_cache.json")
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file, 'r', encoding='utf-8') as cf:
+                v_cache = json.load(cf)
+            for mid_str, info in v_cache.items():
+                if not mid_str.isdigit():
+                    continue
+                name_str = info.get('name', '') if isinstance(info, dict) else str(info)
+                ts = info.get('ts', 0) if isinstance(info, dict) else 0
+                if mid_str not in matches_info_map:
+                    matches_info_map[mid_str] = (name_str, ts)
+        except Exception as e:
+            print(f"Błąd wczytywania custom_matches_cache: {e}")
+
     if not os.path.exists(SHARED_DATA_DIR):
         return []
 
