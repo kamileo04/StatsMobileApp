@@ -45,11 +45,35 @@ val CustomColorScheme = lightColorScheme(
     onError = Color.White
 )
 
+val DarkColorScheme = darkColorScheme(
+    primary = BaseColor,
+    onPrimary = Color.White,
+    primaryContainer = BaseColor,
+    onPrimaryContainer = Color.White,
+    secondary = AccentColor,
+    onSecondary = Color.White,
+    secondaryContainer = AccentColor,
+    onSecondaryContainer = Color.White,
+    tertiary = AccentColor,
+    onTertiary = Color.White,
+    background = Color(0xFF121212),
+    onBackground = Color.White,
+    surface = Color(0xFF1E1E1E),
+    onSurface = Color.White,
+    surfaceVariant = Color(0xFF2C2C2C),
+    onSurfaceVariant = Color.White,
+    error = AccentColor,
+    onError = Color.White
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App() {
     val repository = remember { SofaRepository() }
     val scope = rememberCoroutineScope()
+
+    var isDarkMode by remember { mutableStateOf(false) }
+    var showSettingsMenu by remember { mutableStateOf(false) }
 
     var screenStack by remember { mutableStateOf(listOf<Screen>(Screen.Home)) }
     val currentScreen = screenStack.lastOrNull() ?: Screen.Home
@@ -137,7 +161,7 @@ fun App() {
 
     BackHandler(isEnabled = screenStack.size > 1, onBack = popScreen)
 
-    MaterialTheme(colorScheme = CustomColorScheme) {
+    MaterialTheme(colorScheme = if (isDarkMode) DarkColorScheme else CustomColorScheme) {
         Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
@@ -150,8 +174,27 @@ fun App() {
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.primary,
-                    )
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
+                    actions = {
+                        Box {
+                            IconButton(onClick = { showSettingsMenu = true }) {
+                                Text("⚙️", style = MaterialTheme.typography.titleLarge)
+                            }
+                            DropdownMenu(
+                                expanded = showSettingsMenu,
+                                onDismissRequest = { showSettingsMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(if (isDarkMode) "Jasny motyw" else "Ciemny motyw") },
+                                    onClick = {
+                                        isDarkMode = !isDarkMode
+                                        showSettingsMenu = false
+                                    }
+                                )
+                            }
+                        }
+                    }
                 )
             }
         ) { innerPadding ->
