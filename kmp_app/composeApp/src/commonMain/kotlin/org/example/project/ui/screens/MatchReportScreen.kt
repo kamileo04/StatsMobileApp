@@ -66,7 +66,10 @@ fun MatchReportScreen(
             val rows = mutableListOf<MatchComparisonRow>()
             
             // Filtrujemy klucze które są tekstami i niechciane
-            val ignored = setOf("id", "team", "name", "position", "Calculated Position", "slug", "teamName", "appearances")
+            val ignored = setOf(
+                "id", "team", "name", "position", "Calculated Position", "slug", "teamName", "appearances",
+                "ownGoals", "ratingVersions_original", "savePercentage", "totalOffside", "outfielderBlock"
+            )
             
             for ((key, element) in matchData.stats) {
                 if (key in ignored) continue
@@ -164,25 +167,6 @@ fun MatchReportScreen(
                             }
                         }
                         
-                        // Pozostałe statystyki
-                        val mappedKeys = STATS_CATEGORIES.values.flatten()
-                        val otherRows = comparisonRows.filter { it.key !in mappedKeys }
-                        if (otherRows.isNotEmpty()) {
-                            item {
-                                Text(
-                                    text = "Inne",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(start = 8.dp, top = 16.dp, bottom = 4.dp)
-                                )
-                                Divider(thickness = 2.dp, color = MaterialTheme.colorScheme.primary.copy(alpha=0.3f))
-                            }
-                            items(otherRows) { row ->
-                                MatchRowUI(row)
-                                Divider(color = Color.LightGray.copy(alpha = 0.3f))
-                            }
-                        }
                     }
                 }
             }
