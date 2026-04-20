@@ -244,9 +244,15 @@ fun App() {
                                     repository.login(loginPassword).fold(
                                         onSuccess = { resp ->
                                             if (resp.success) isLoggedIn = true
-                                            else loginError = resp.message
+                                            else loginError = "Nieprawidłowe hasło"
                                         },
-                                        onFailure = { loginError = "Błąd połączenia: ${it.message}" }
+                                        onFailure = {
+                                            loginError = if (it.message?.contains("401") == true) {
+                                                "Nieprawidłowe hasło"
+                                            } else {
+                                                "Błąd połączenia: ${it.message}"
+                                            }
+                                        }
                                     )
                                     loginLoading = false
                                 }
