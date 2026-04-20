@@ -71,6 +71,9 @@ kotlin {
             implementation(libs.ktor.client.logging)
             // Serialization
             implementation(libs.kotlinx.serialization.json)
+            // Settings
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatform.settings.no.arg)
             // Charts
             implementation("io.github.koalaplot:koalaplot-core:0.6.1")
         }
