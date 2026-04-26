@@ -116,6 +116,7 @@ fun App() {
     var statusMessage by remember { mutableStateOf<String?>(null) }
 
     var favoritePlayers by remember { mutableStateOf(favoritesRepository.getFavoritePlayers()) }
+    var showFavoritesOnly by remember { mutableStateOf(false) }
 
     // --- Pobieranie drużyn po zalogowaniu ---
     LaunchedEffect(isLoggedIn) {
@@ -271,13 +272,53 @@ fun App() {
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
 
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = { 
+                                    showFavoritesOnly = false 
+                                    if (selectedPlayer != null && !players.any { it.id == selectedPlayer?.id }) {
+                                        selectedPlayer = null
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (!showFavoritesOnly) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                    contentColor = if (!showFavoritesOnly) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            ) {
+                                Text("Wszyscy")
+                            }
+                            Button(
+                                onClick = { 
+                                    showFavoritesOnly = true 
+                                    if (selectedPlayer != null && !favoritePlayers.any { it.id == selectedPlayer?.id }) {
+                                        selectedPlayer = null
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (showFavoritesOnly) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                    contentColor = if (showFavoritesOnly) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            ) {
+                                Text("Ulubieni")
+                            }
+                        }
+
+                        val displayedPlayers = if (showFavoritesOnly) favoritePlayers else players
+
                         // Dropdowns – aktywne tylko gdy dane są gotowe
-                        AppDropdownSelect(
-                            label = "Drużyna",
-                            options = teams,
-                            selectedOption = selectedTeam ?: "",
-                            onOptionSelected = { selectedTeam = it }
-                        )
+                        if (!showFavoritesOnly) {
+                            AppDropdownSelect(
+                                label = "Drużyna",
+                                options = teams,
+                                selectedOption = selectedTeam ?: "",
+                                onOptionSelected = { selectedTeam = it }
+                            )
+                        }
 
                         Row(
                             modifier = Modifier
@@ -288,10 +329,10 @@ fun App() {
                             AppDropdownSelect(
                                 modifier = Modifier.weight(1f),
                                 label = "Zawodnik",
-                                options = players.map { it.name },
+                                options = displayedPlayers.map { it.name },
                                 selectedOption = selectedPlayer?.name ?: "",
                                 onOptionSelected = { name ->
-                                    selectedPlayer = players.firstOrNull { it.name == name }
+                                    selectedPlayer = displayedPlayers.firstOrNull { it.name == name }
                                 }
                             )
 
