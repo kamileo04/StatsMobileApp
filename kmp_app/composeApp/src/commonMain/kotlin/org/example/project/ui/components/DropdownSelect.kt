@@ -16,14 +16,13 @@ fun AppDropdownSelect(
     label: String,
     options: List<String>,
     selectedOption: String,
+    modifier: Modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
     onOptionSelected: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+        modifier = modifier
     ) {
         OutlinedTextField(
             value = selectedOption,

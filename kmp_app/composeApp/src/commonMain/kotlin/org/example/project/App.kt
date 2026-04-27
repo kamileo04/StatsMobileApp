@@ -22,6 +22,9 @@ import org.example.project.navigation.Screen
 import org.example.project.navigation.BackHandler
 import org.example.project.ui.screens.PlayerSeasonScreen
 import org.example.project.ui.screens.MatchReportScreen
+import org.example.project.ui.screens.FavoritesScreen
+import org.example.project.data.repository.FavoritesRepository
+
 
 val BaseColor = Color(0xFF0458A7)
 val AccentColor = Color(0xFFE53935)
@@ -73,6 +76,7 @@ val DarkColorScheme = darkColorScheme(
 @Composable
 fun App() {
     val repository = remember { SofaRepository() }
+    val favoritesRepository = remember { FavoritesRepository() }
     val scope = rememberCoroutineScope()
 
     var isDarkMode by remember { mutableStateOf(false) }
@@ -110,6 +114,9 @@ fun App() {
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
+
+    var favoritePlayers by remember { mutableStateOf(favoritesRepository.getFavoritePlayers()) }
+    var showFavoritesOnly by remember { mutableStateOf(false) }
 
     // --- Pobieranie drużyn po zalogowaniu ---
     LaunchedEffect(isLoggedIn) {
@@ -265,22 +272,90 @@ fun App() {
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
 
-                        // Dropdowns – aktywne tylko gdy dane są gotowe
-                        AppDropdownSelect(
-                            label = "Drużyna",
-                            options = teams,
-                            selectedOption = selectedTeam ?: "",
-                            onOptionSelected = { selectedTeam = it }
-                        )
-
-                        AppDropdownSelect(
-                            label = "Zawodnik",
-                            options = players.map { it.name },
-                            selectedOption = selectedPlayer?.name ?: "",
-                            onOptionSelected = { name ->
-                                selectedPlayer = players.firstOrNull { it.name == name }
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = { 
+                                    showFavoritesOnly = false 
+                                    if (selectedPlayer != null && !players.any { it.id == selectedPlayer?.id }) {
+                                        selectedPlayer = null
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (!showFavoritesOnly) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                    contentColor = if (!showFavoritesOnly) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            ) {
+                                Text("Wszyscy")
                             }
-                        )
+                            Button(
+                                onClick = { 
+                                    showFavoritesOnly = true 
+                                    if (selectedPlayer != null && !favoritePlayers.any { it.id == selectedPlayer?.id }) {
+                                        selectedPlayer = null
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (showFavoritesOnly) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                    contentColor = if (showFavoritesOnly) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            ) {
+                                Text("Ulubieni")
+                            }
+                        }
+
+                        val displayedPlayers = if (showFavoritesOnly) favoritePlayers else players
+
+                        // Dropdowns – aktywne tylko gdy dane są gotowe
+                        if (!showFavoritesOnly) {
+                            AppDropdownSelect(
+                                label = "Drużyna",
+                                options = teams,
+                                selectedOption = selectedTeam ?: "",
+                                onOptionSelected = { selectedTeam = it }
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            AppDropdownSelect(
+                                modifier = Modifier.weight(1f),
+                                label = "Zawodnik",
+                                options = displayedPlayers.map { it.name },
+                                selectedOption = selectedPlayer?.name ?: "",
+                                onOptionSelected = { name ->
+                                    selectedPlayer = displayedPlayers.firstOrNull { it.name == name }
+                                }
+                            )
+
+                            if (selectedPlayer != null) {
+                                val player = selectedPlayer!!
+                                val isFav = favoritePlayers.any { it.id == player.id }
+                                IconButton(
+                                    onClick = {
+                                        favoritesRepository.toggleFavorite(player)
+                                        favoritePlayers = favoritesRepository.getFavoritePlayers()
+                                    },
+                                    modifier = Modifier.padding(start = 8.dp)
+                                ) {
+                                    Text(
+                                        text = if (isFav) "★" else "☆",
+                                        style = MaterialTheme.typography.headlineMedium,
+                                        color = if (isFav) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onBackground
+                                    )
+                                }
+                            } else {
+                                Spacer(modifier = Modifier.width(56.dp))
+                            }
+                        }
 
                         AppDropdownSelect(
                             label = "Mecz",
@@ -348,6 +423,13 @@ fun App() {
                             Text("Pokaż wykresy powiązane z pozycją gracza")
                         }
 
+                        Button(
+                            onClick = { navigateTo(Screen.Favorites) },
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                        ) {
+                            Text("Pokaż listę ulubionych zawodników")
+                        }
+
                         statusMessage?.let {
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 Text(it, modifier = Modifier.padding(12.dp),
@@ -368,6 +450,15 @@ fun App() {
                                 playerId = screen.playerId,
                                 matchId = screen.matchId,
                                 repository = repository,
+                                onBackClick = popScreen
+                            )
+                        }
+                        is Screen.Favorites -> {
+                            FavoritesScreen(
+                                favoritePlayers = favoritePlayers,
+                                onShowStats = { playerId ->
+                                    navigateTo(Screen.PlayerSeason(playerId))
+                                },
                                 onBackClick = popScreen
                             )
                         }
