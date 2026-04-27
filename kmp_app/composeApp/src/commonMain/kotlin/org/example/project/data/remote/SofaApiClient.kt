@@ -9,10 +9,6 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import org.example.project.data.model.*
-
-// Wspólny singleton HttpClient
-// Engine (OkHttp/Darwin/Js) jest wstrzykiwany przez actual/expect lub konfigurowany przez platformę.
-// Tutaj używamy domyślnego engine'a wykrywanego automatycznie przez Ktor na każdej platformie.
 val httpClient = HttpClient {
     install(ContentNegotiation) {
         json(Json {
@@ -28,10 +24,7 @@ val httpClient = HttpClient {
     expectSuccess = true
 }
 
-/**
- * Klient do komunikacji z SofaMobile API.
- * Wywołaj SofaApiClient(baseUrl = "https://api.serkad.ovh")
- */
+
 class SofaApiClient(
     private val baseUrl: String,
     private val client: HttpClient = httpClient
