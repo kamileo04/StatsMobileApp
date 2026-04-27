@@ -1,6 +1,13 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
+
+// Wczytaj local.properties (gitignorowany, zawiera hasła testowe)
+val localProps = Properties().also { props ->
+    val f = rootProject.file("local.properties")
+    if (f.exists()) props.load(f.inputStream())
+}
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -114,5 +121,37 @@ android {
 
 dependencies {
     debugImplementation(libs.compose.uiTooling)
+}
+
+// Przekaż dane z local.properties do JVM testów jako System.getProperty(...)
+afterEvaluate {
+    // --- Testy jednostkowe: wyklucz klasy *IntegrationTest ---
+    tasks.named<Test>("testDebugUnitTest") {
+        systemProperty("api.base.url", localProps.getProperty("api.base.url", "https://api.serkad.ovh"))
+        systemProperty("api.password", localProps.getProperty("api.password", ""))
+        excludes.add("**/*IntegrationTest*")
+        reports.html.outputLocation.set(layout.buildDirectory.dir("reports/tests/unitTest"))
+    }
+
+    // --- Testy integracyjne: osobny task, osobny katalog raportów ---
+    val integrationTest by tasks.registering(Test::class) {
+        group = "verification"
+        description = "Uruchamia testy integracyjne uderzające w prawdziwe API."
+
+        // Użyj tych samych plików .class co testDebugUnitTest
+        val unitTestTask = tasks.named<Test>("testDebugUnitTest").get()
+        testClassesDirs = unitTestTask.testClassesDirs
+        classpath = unitTestTask.classpath
+
+        systemProperty("api.base.url", localProps.getProperty("api.base.url", "https://api.serkad.ovh"))
+        systemProperty("api.password", localProps.getProperty("api.password", ""))
+
+        // Uruchom TYLKO klasy *IntegrationTest
+        includes.add("**/*IntegrationTest*")
+
+        // Osobny katalog raportów – nie nadpisuje unitTest/index.html
+        reports.html.outputLocation.set(layout.buildDirectory.dir("reports/tests/integrationTest"))
+        reports.junitXml.outputLocation.set(layout.buildDirectory.dir("reports/tests/integrationTest/xml"))
+    }
 }
 
