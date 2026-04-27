@@ -32,38 +32,41 @@ val httpClient = HttpClient {
  * Klient do komunikacji z SofaMobile API.
  * Wywołaj SofaApiClient(baseUrl = "https://api.serkad.ovh")
  */
-class SofaApiClient(private val baseUrl: String) {
+class SofaApiClient(
+    private val baseUrl: String,
+    private val client: HttpClient = httpClient
+) {
 
     /** POST /login */
     suspend fun login(password: String): LoginResponse =
-        httpClient.post("$baseUrl/login") {
+        client.post("$baseUrl/login") {
             contentType(ContentType.Application.Json)
             setBody(LoginRequest(password))
         }.body()
 
     /** GET /teams */
     suspend fun getTeams(): TeamsResponse =
-        httpClient.get("$baseUrl/teams").body()
+        client.get("$baseUrl/teams").body()
 
     /** GET /players/{team} */
     suspend fun getPlayers(team: String): PlayersResponse =
-        httpClient.get("$baseUrl/players/${team.encodeURLPath()}").body()
+        client.get("$baseUrl/players/${team.encodeURLPath()}").body()
 
     /** GET /matches/{player_id} */
     suspend fun getMatchHistory(playerId: Int): List<MatchHistoryItem> =
-        httpClient.get("$baseUrl/matches/$playerId").body()
+        client.get("$baseUrl/matches/$playerId").body()
 
     /** GET /match_report/{player_id}/{match_id} */
     suspend fun getMatchReport(playerId: Int, matchId: String): MatchReportResponse =
-        httpClient.get("$baseUrl/match_report/$playerId/$matchId").body()
+        client.get("$baseUrl/match_report/$playerId/$matchId").body()
 
     /** GET /season_stats/{player_id} */
     suspend fun getSeasonStats(playerId: Int): SeasonStatsResponse =
-        httpClient.get("$baseUrl/season_stats/$playerId").body()
+        client.get("$baseUrl/season_stats/$playerId").body()
         
     /** GET /player_percentiles/{player_id}?template={template} */
     suspend fun getPlayerPercentiles(playerId: Int, template: String = "Auto", minMinutes: Int = 300): PlayerPercentilesResponse {
-        return httpClient.get("$baseUrl/player_percentiles/$playerId") {
+        return client.get("$baseUrl/player_percentiles/$playerId") {
             parameter("template", template)
             parameter("min_minutes", minMinutes)
         }.body()
