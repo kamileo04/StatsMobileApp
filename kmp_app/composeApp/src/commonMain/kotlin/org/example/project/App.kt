@@ -23,6 +23,7 @@ import org.example.project.navigation.BackHandler
 import org.example.project.ui.screens.PlayerSeasonScreen
 import org.example.project.ui.screens.MatchReportScreen
 import org.example.project.ui.screens.FavoritesScreen
+import org.example.project.ui.screens.ComparePlayersScreen
 import org.example.project.data.repository.FavoritesRepository
 
 
@@ -143,7 +144,7 @@ fun App() {
         repository.getPlayers(team).fold(
             onSuccess = { list ->
                 players = list
-                selectedPlayer = list.firstOrNull()
+                selectedPlayer = null
             },
             onFailure = { errorMessage = "Błąd pobierania zawodników: ${it.message}" }
         )
@@ -336,7 +337,7 @@ fun App() {
                                 modifier = Modifier.weight(1f),
                                 label = "Zawodnik",
                                 options = displayedPlayers.map { it.name },
-                                selectedOption = selectedPlayer?.name ?: "",
+                                selectedOption = selectedPlayer?.name ?: "Wybierz zawodnika",
                                 onOptionSelected = { name ->
                                     selectedPlayer = displayedPlayers.firstOrNull { it.name == name }
                                 }
@@ -436,6 +437,15 @@ fun App() {
                             Text("Pokaż listę ulubionych zawodników")
                         }
 
+                        Button(
+                            onClick = {
+                                navigateTo(Screen.ComparePlayers(selectedPlayer?.id))
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                        ) {
+                            Text("Porównaj zawodników")
+                        }
+
                         statusMessage?.let {
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 Text(it, modifier = Modifier.padding(12.dp),
@@ -465,6 +475,13 @@ fun App() {
                                 onShowStats = { playerId ->
                                     navigateTo(Screen.PlayerSeason(playerId))
                                 },
+                                onBackClick = popScreen
+                            )
+                        }
+                        is Screen.ComparePlayers -> {
+                            ComparePlayersScreen(
+                                initialPlayerId = screen.initialPlayerId,
+                                repository = repository,
                                 onBackClick = popScreen
                             )
                         }

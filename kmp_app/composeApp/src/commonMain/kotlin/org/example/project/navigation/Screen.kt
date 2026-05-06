@@ -7,4 +7,5 @@ sealed class Screen {
     data class PlayerSeason(val playerId: Int) : Screen()
     data class MatchReport(val playerId: Int, val matchId: String) : Screen()
     data object Favorites : Screen()
+    data class ComparePlayers(val initialPlayerId: Int?) : Screen()
 }
