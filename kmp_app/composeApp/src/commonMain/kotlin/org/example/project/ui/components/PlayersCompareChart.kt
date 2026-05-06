@@ -35,7 +35,6 @@ fun PlayersCompareChart(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // Wyświetlenie statystyk. Zbieramy unikalne klucze (etykiety statystyk) z obu list.
             val allLabels = (stats1.map { it.label } + stats2.map { it.label }).distinct()
 
             allLabels.forEach { label ->

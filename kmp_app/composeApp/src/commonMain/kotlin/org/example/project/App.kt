@@ -144,7 +144,7 @@ fun App() {
         repository.getPlayers(team).fold(
             onSuccess = { list ->
                 players = list
-                selectedPlayer = list.firstOrNull()
+                selectedPlayer = null
             },
             onFailure = { errorMessage = "Błąd pobierania zawodników: ${it.message}" }
         )
@@ -337,7 +337,7 @@ fun App() {
                                 modifier = Modifier.weight(1f),
                                 label = "Zawodnik",
                                 options = displayedPlayers.map { it.name },
-                                selectedOption = selectedPlayer?.name ?: "",
+                                selectedOption = selectedPlayer?.name ?: "Wybierz zawodnika",
                                 onOptionSelected = { name ->
                                     selectedPlayer = displayedPlayers.firstOrNull { it.name == name }
                                 }

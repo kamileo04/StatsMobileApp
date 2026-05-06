@@ -80,18 +80,15 @@ fun ComparePlayersScreen(
         isTeamsLoading = false
     }
 
-    // Pobieranie zawodników dla Drużyny 1 (gdy zmieniamy ręcznie)
+    // Pobieranie zawodników dla Drużyny 1
     LaunchedEffect(selectedTeam1) {
         val team = selectedTeam1 ?: return@LaunchedEffect
-        // Jeśli już mamy ustawionych zawodników z initialPlayerId, nie nadpisuj od razu pustą listą
-        if (players1.isNotEmpty() && selectedPlayer1 != null && players1.any { it.id == selectedPlayer1?.id }) {
-            // zachowaj obecny stan
-        } else {
-            repository.getPlayers(team).onSuccess { list ->
-                players1 = list
-                selectedPlayer1 = list.firstOrNull()
-            }.onFailure { errorMessage = "Błąd pobierania zawodników" }
-        }
+        repository.getPlayers(team).onSuccess { list ->
+            players1 = list
+            if (selectedPlayer1 == null || !list.any { it.id == selectedPlayer1?.id }) {
+                selectedPlayer1 = null
+            }
+        }.onFailure { errorMessage = "Błąd pobierania zawodników" }
     }
 
     // Pobieranie zawodników dla Drużyny 2
@@ -199,7 +196,7 @@ fun ComparePlayersScreen(
                                 AppDropdownSelect(
                                     label = "Zawodnik",
                                     options = players1.map { it.name },
-                                    selectedOption = selectedPlayer1?.name ?: "",
+                                    selectedOption = selectedPlayer1?.name ?: "Wybierz zawodnika",
                                     onOptionSelected = { name -> selectedPlayer1 = players1.find { it.name == name } }
                                 )
                             }
@@ -226,7 +223,7 @@ fun ComparePlayersScreen(
                                 AppDropdownSelect(
                                     label = "Zawodnik",
                                     options = players2.map { it.name },
-                                    selectedOption = selectedPlayer2?.name ?: "",
+                                    selectedOption = selectedPlayer2?.name ?: "Wybierz zawodnika",
                                     onOptionSelected = { name -> selectedPlayer2 = players2.find { it.name == name } }
                                 )
                             }
