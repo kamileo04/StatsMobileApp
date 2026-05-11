@@ -10,11 +10,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.example.project.data.model.Player
 import org.example.project.data.model.PlayerPercentilesResponse
 import org.example.project.data.repository.SofaRepository
 import org.example.project.ui.components.AppDropdownSelect
+import org.example.project.ui.components.ComparisonRadarChart
 import org.example.project.ui.components.PlayerFullStatsTable
 import org.example.project.ui.components.PlayerPercentileChart
+import org.example.project.ui.components.PlayerPickerDialog
 import org.example.project.ui.components.PlayerRadarChart
 
 @Composable
@@ -35,6 +38,12 @@ fun PlayerSeasonScreen(
     var selectedMinMinutes by remember { mutableStateOf("300") }
     val minutesOptions = listOf("0", "100", "300", "500", "900")
 
+    var showPlayerPicker by remember { mutableStateOf(false) }
+    var comparisonPlayer by remember { mutableStateOf<Player?>(null) }
+    var comparisonData by remember { mutableStateOf<PlayerPercentilesResponse?>(null) }
+    var isComparisonLoading by remember { mutableStateOf(false) }
+    var comparisonError by remember { mutableStateOf<String?>(null) }
+
     LaunchedEffect(playerId, selectedTemplate, selectedMinMinutes) {
         isLoading = true
         val minMinsInt = selectedMinMinutes.toIntOrNull() ?: 300
@@ -47,6 +56,37 @@ fun PlayerSeasonScreen(
                 errorMessage = error.message ?: "Wystąpił nieznany błąd"
             }
         isLoading = false
+    }
+
+    LaunchedEffect(comparisonPlayer, selectedTemplate, selectedMinMinutes) {
+        val player = comparisonPlayer ?: run {
+            comparisonData = null
+            return@LaunchedEffect
+        }
+        isComparisonLoading = true
+        comparisonError = null
+        val minMinsInt = selectedMinMinutes.toIntOrNull() ?: 300
+        repository.getPlayerPercentiles(player.id, selectedTemplate, minMinsInt)
+            .onSuccess { data ->
+                comparisonData = data
+                comparisonError = null
+            }
+            .onFailure { error ->
+                comparisonError = error.message ?: "Błąd pobierania danych porównania"
+                comparisonData = null
+            }
+        isComparisonLoading = false
+    }
+
+    if (showPlayerPicker) {
+        PlayerPickerDialog(
+            repository = repository,
+            onPlayerSelected = { player ->
+                comparisonPlayer = player
+                showPlayerPicker = false
+            },
+            onDismiss = { showPlayerPicker = false }
+        )
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(8.dp)) {
@@ -105,19 +145,115 @@ fun PlayerSeasonScreen(
                     }
                 }
                 
-                // Wykres Słupkowy Percentyli dla wybranej pozycji (Zastępstwo dla Pizza Chart)
                 PlayerPercentileChart(
                     title = "Profil (${data.position}) vs $selectedMinMinutes+ min", 
                     stats = data.radarChart
                 )
 
-                // Radar Chart
                 PlayerRadarChart(
                     title = "Radar Chart (${data.position})",
                     stats = data.radarChart
                 )
+
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Porównanie z innym zawodnikiem",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 8.dp).align(Alignment.Start)
+                        )
+
+                        if (comparisonPlayer == null) {
+                            Button(
+                                onClick = { showPlayerPicker = true },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Porównaj z innym zawodnikiem")
+                            }
+                        } else {
+                            Text(
+                                text = "Porównujesz z: ${comparisonPlayer!!.name}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                OutlinedButton(
+                                    onClick = { showPlayerPicker = true },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Zmień zawodnika")
+                                }
+                                OutlinedButton(
+                                    onClick = {
+                                        comparisonPlayer = null
+                                        comparisonData = null
+                                        comparisonError = null
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = MaterialTheme.colorScheme.error
+                                    )
+                                ) {
+                                    Text("Usuń porównanie")
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (isComparisonLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                            Text(
+                                text = "Ładowanie danych porównania...",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
+                    }
+                }
+
+                comparisonError?.let { err ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(8.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+                    ) {
+                        Text(
+                            text = "Błąd porównania: $err",
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(12.dp),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+
+                if (comparisonData != null && !isComparisonLoading) {
+                    val cmpData = comparisonData!!
+                    ComparisonRadarChart(
+                        title = "Porównanie radarowe (${data.position})",
+                        playerAName = data.playerName,
+                        playerAStats = data.radarChart,
+                        playerBName = cmpData.playerName,
+                        playerBStats = cmpData.radarChart
+                    )
+                }
                 
-                // Pełna tabela wszystkich statystyk
                 PlayerFullStatsTable(stats = data.fullTable)
             }
         }
