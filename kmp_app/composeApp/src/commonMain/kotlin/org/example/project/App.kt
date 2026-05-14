@@ -12,6 +12,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 import kotlinx.coroutines.launch
 import org.example.project.data.model.Player
 import org.example.project.data.repository.SofaRepository
@@ -172,9 +176,12 @@ fun App() {
 
     BackHandler(isEnabled = screenStack.size > 1, onBack = popScreen)
 
+    val isWebPlatform = remember { getPlatform().name.contains("Web") }
+
     MaterialTheme(colorScheme = if (isDarkMode) DarkColorScheme else CustomColorScheme) {
         Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
             topBar = {
                 TopAppBar(
                     title = {
@@ -190,7 +197,11 @@ fun App() {
                     actions = {
                         Box {
                             IconButton(onClick = { showSettingsMenu = true }) {
-                                Text("⚙️", style = MaterialTheme.typography.titleLarge)
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = "Ustawienia",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
                             }
                             DropdownMenu(
                                 expanded = showSettingsMenu,
@@ -209,9 +220,18 @@ fun App() {
                 )
             }
         ) { innerPadding ->
-            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+            Box(
+                modifier = Modifier.padding(innerPadding).fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                val contentModifier = if (isWebPlatform) {
+                    Modifier.fillMaxHeight().widthIn(max = 800.dp)
+                } else {
+                    Modifier.fillMaxSize()
+                }
 
-                if (!isLoggedIn) {
+                Box(modifier = contentModifier) {
+                    if (!isLoggedIn) {
                     // ===== EKRAN LOGOWANIA =====
                     Column(
                         modifier = Modifier
@@ -353,10 +373,10 @@ fun App() {
                                     },
                                     modifier = Modifier.padding(start = 8.dp)
                                 ) {
-                                    Text(
-                                        text = if (isFav) "★" else "☆",
-                                        style = MaterialTheme.typography.headlineMedium,
-                                        color = if (isFav) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onBackground
+                                    Icon(
+                                        imageVector = if (isFav) Icons.Default.Star else Icons.Outlined.Star,
+                                        contentDescription = if (isFav) "Usuń z ulubionych" else "Dodaj do ulubionych",
+                                        tint = if (isFav) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onBackground
                                     )
                                 }
                             } else {
@@ -493,6 +513,7 @@ fun App() {
                         }
                     }
                 }
+                } // end content Box
             }
         } // end Scaffold
 

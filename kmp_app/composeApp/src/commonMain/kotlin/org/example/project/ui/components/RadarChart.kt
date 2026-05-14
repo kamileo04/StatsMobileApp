@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import org.example.project.data.model.RadarStatItem
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.PI
 
 @Composable
 fun PlayerRadarChart(
@@ -56,7 +57,7 @@ fun PlayerRadarChart(
                     val radius = size.minDimension / 2f
 
                     val numPoints = stats.size
-                    val angleStep = (2 * kotlin.math.PI / numPoints).toFloat()
+                    val angleStep = (2 * PI / numPoints).toFloat()
 
                     // Draw grid lines
                     val numRings = 5

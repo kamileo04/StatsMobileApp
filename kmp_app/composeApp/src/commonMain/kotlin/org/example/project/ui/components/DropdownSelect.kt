@@ -10,6 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 
 @Composable
 fun AppDropdownSelect(
@@ -30,10 +33,9 @@ fun AppDropdownSelect(
             readOnly = true,
             label = { Text(label) },
             trailingIcon = {
-                Text(
-                    text = if (expanded) "^" else "v",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
+                Icon(
+                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
                     modifier = Modifier.padding(end = 8.dp)
                 )
             },

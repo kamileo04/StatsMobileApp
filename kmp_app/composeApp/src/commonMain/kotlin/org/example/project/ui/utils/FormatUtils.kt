@@ -29,13 +29,13 @@ val LOWER_IS_BETTER_STATS = setOf(
 )
 
 val STATS_CATEGORIES = mapOf(
-    "📌 Ogólne" to listOf("rating", "minutesPlayed"),
-    "⚽ Bramki i xG" to listOf("goals", "expectedGoals", "G-xG", "xGOT", "xGOT-xG", "G-xGOT"),
-    "🥅 Bramkarskie" to listOf("saves", "goalsConceded", "goalsPrevented", "cleanSheet", "xGA", "xGOTA", "savedShotsFromInsideTheBox", "crossNotClaimed", "goodHighClaim", "totalKeeperSweeper", "accurateKeeperSweeper"),
-    "🎯 Strzały" to listOf("totalShots", "onTargetScoringAttempt", "shotOffTarget", "blockedScoringAttempt", "hitWoodwork", "bigChanceMissed"),
-    "🅰️ Podania i Kreacja" to listOf("goalAssist", "assists", "expectedAssists", "keyPass", "bigChanceCreated", "touches", "totalPass", "accuratePass", "accuratePassesPercentage", "totalLongBalls", "accurateLongBalls", "accurateLongBallsPercentage", "totalCross", "accurateCross", "accurateCrossesPercentage", "accurateOppositionHalfPasses", "totalOppositionHalfPasses", "accurateOppositionHalfPassesPercentage", "accurateOwnHalfPasses","totalOwnHalfPasses", "accurateOwnHalfPassesPercentage"),
-    "⚡ Drybling i Pojedynki" to listOf("totalContest", "wonContest", "wonContestPercentage", "duelWon", "duelLost", "groundDuelsWonPercentage", "aerialWon", "aerialLost", "aerialDuelsWonPercentage", "wasFouled", "fouls", "dispossessed", "unsuccessfulTouch", "possessionLostCtrl"),
-    "🛡️ Defensywa" to listOf("totalTackle", "wonTackle", "wonTacklePercentage", "interceptionWon", "ballRecovery", "totalClearance", "challengeLost", "errorLeadToAShot", "penaltyConceded")
+    "Ogólne" to listOf("rating", "minutesPlayed"),
+    "Bramki i xG" to listOf("goals", "expectedGoals", "G-xG", "xGOT", "xGOT-xG", "G-xGOT"),
+    "Bramkarskie" to listOf("saves", "goalsConceded", "goalsPrevented", "cleanSheet", "xGA", "xGOTA", "savedShotsFromInsideTheBox", "crossNotClaimed", "goodHighClaim", "totalKeeperSweeper", "accurateKeeperSweeper"),
+    "Strzały" to listOf("totalShots", "onTargetScoringAttempt", "shotOffTarget", "blockedScoringAttempt", "hitWoodwork", "bigChanceMissed"),
+    "Podania i Kreacja" to listOf("goalAssist", "assists", "expectedAssists", "keyPass", "bigChanceCreated", "touches", "totalPass", "accuratePass", "accuratePassesPercentage", "totalLongBalls", "accurateLongBalls", "accurateLongBallsPercentage", "totalCross", "accurateCross", "accurateCrossesPercentage", "accurateOppositionHalfPasses", "totalOppositionHalfPasses", "accurateOppositionHalfPassesPercentage", "accurateOwnHalfPasses","totalOwnHalfPasses", "accurateOwnHalfPassesPercentage"),
+    "Drybling i Pojedynki" to listOf("totalContest", "wonContest", "wonContestPercentage", "duelWon", "duelLost", "groundDuelsWonPercentage", "aerialWon", "aerialLost", "aerialDuelsWonPercentage", "wasFouled", "fouls", "dispossessed", "unsuccessfulTouch", "possessionLostCtrl"),
+    "Defensywa" to listOf("totalTackle", "wonTackle", "wonTacklePercentage", "interceptionWon", "ballRecovery", "totalClearance", "challengeLost", "errorLeadToAShot", "penaltyConceded")
 )
 
 // Pełna mapa ze Streamlita
