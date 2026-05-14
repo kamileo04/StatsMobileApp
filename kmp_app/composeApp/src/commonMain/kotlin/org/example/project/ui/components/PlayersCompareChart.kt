@@ -2,7 +2,6 @@ package org.example.project.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -14,6 +13,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.example.project.data.model.RadarStatItem
 import org.example.project.ui.utils.toFormattedString
+import org.example.project.ui.theme.AppDesign
 
 @Composable
 fun PlayersCompareChart(
@@ -24,15 +24,17 @@ fun PlayersCompareChart(
     stats2: List<RadarStatItem>
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        modifier = Modifier.fillMaxWidth().padding(AppDesign.SmallSpacing),
+        shape = AppDesign.CardShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDesign.CardElevation)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(AppDesign.CardInnerPadding + 4.dp)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = AppDesign.ContentPadding)
             )
 
             val allLabels = (stats1.map { it.label } + stats2.map { it.label }).distinct()
@@ -42,7 +44,7 @@ fun PlayersCompareChart(
                 val stat2 = stats2.find { it.label == label }
 
                 ComparePercentileBarRow(label, player1Name, player2Name, stat1, stat2)
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(AppDesign.ContentPadding))
             }
         }
     }
@@ -65,12 +67,12 @@ private fun ComparePercentileBarRow(
             textAlign = TextAlign.Center
         )
         
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         // Gracz 1
         PlayerStatBar(playerName = player1Name, stat = stat1)
         
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         
         // Gracz 2
         PlayerStatBar(playerName = player2Name, stat = stat2)
@@ -106,23 +108,23 @@ private fun PlayerStatBar(playerName: String, stat: RadarStatItem?) {
         Box(
             modifier = Modifier
                 .weight(1f)
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.Gray.copy(alpha = 0.3f))
+                .height(AppDesign.BarHeight)
+                .clip(AppDesign.BarShape)
+                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
         ) {
             if (percentile > 0) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(percentile / 100f)
                         .fillMaxHeight()
-                        .clip(RoundedCornerShape(4.dp))
+                        .clip(AppDesign.BarShape)
                         .background(barColor)
                 )
             }
         }
         
         Row(
-            modifier = Modifier.width(80.dp),
+            modifier = Modifier.width(84.dp),
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -130,7 +132,7 @@ private fun PlayerStatBar(playerName: String, stat: RadarStatItem?) {
                 text = valueStr,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(end = 4.dp)
+                modifier = Modifier.padding(end = 6.dp)
             )
             Text(
                 text = "$percentile",
@@ -138,7 +140,7 @@ private fun PlayerStatBar(playerName: String, stat: RadarStatItem?) {
                 fontWeight = FontWeight.Black,
                 color = barColor,
                 textAlign = TextAlign.End,
-                modifier = Modifier.width(24.dp)
+                modifier = Modifier.width(28.dp)
             )
         }
     }

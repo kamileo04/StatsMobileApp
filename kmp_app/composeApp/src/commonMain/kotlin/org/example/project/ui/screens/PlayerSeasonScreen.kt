@@ -19,6 +19,7 @@ import org.example.project.ui.components.PlayerFullStatsTable
 import org.example.project.ui.components.PlayerPercentileChart
 import org.example.project.ui.components.PlayerPickerDialog
 import org.example.project.ui.components.PlayerRadarChart
+import org.example.project.ui.theme.AppDesign
 
 @Composable
 fun PlayerSeasonScreen(
@@ -89,42 +90,94 @@ fun PlayerSeasonScreen(
         )
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(8.dp)) {
-        Button(onClick = onBackClick, modifier = Modifier.padding(bottom = 8.dp)) {
-            Text("Powrót")
-        }
-        
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = AppDesign.ScreenPadding, vertical = AppDesign.SmallSpacing)
+    ) {
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(modifier = Modifier.size(40.dp), strokeWidth = 3.dp)
+                    Spacer(modifier = Modifier.height(AppDesign.ItemSpacing))
+                    Text(
+                        "Ładowanie danych...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         } else if (errorMessage != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "Błąd: $errorMessage", color = MaterialTheme.colorScheme.error)
+                Card(
+                    shape = AppDesign.CardShape,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = "Błąd: $errorMessage",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(AppDesign.CardInnerPadding)
+                    )
+                }
             }
         } else if (percentilesData != null) {
             val data = percentilesData!!
             
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                Text(
-                    text = "Player: ${data.playerName}",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                )
-                Text(
-                    text = "Pozycja: ${data.position} | Grupa: ${data.groupSize} graczy",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 16.dp)
-                )
+            Column(
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(AppDesign.SmallSpacing)
+            ) {
+                // Player info header card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = AppDesign.CardShape,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = AppDesign.CardElevation)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(AppDesign.CardInnerPadding + 4.dp)
+                    ) {
+                        Text(
+                            text = data.playerName,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            text = "Pozycja: ${data.position}  •  Grupa: ${data.groupSize} graczy",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                            modifier = Modifier.padding(top = AppDesign.TinySpacing)
+                        )
+                    }
+                }
+
                 // Formularz filtrów
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = AppDesign.CardShape,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = AppDesign.CardElevation)
                 ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text("Personalizacja porównania", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom=8.dp))
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(modifier = Modifier.padding(AppDesign.CardInnerPadding)) {
+                        Text(
+                            "Personalizacja porównania",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(bottom = AppDesign.SmallSpacing)
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(AppDesign.SmallSpacing)
+                        ) {
                             Box(modifier = Modifier.weight(1f)) {
                                 AppDropdownSelect(
                                     label = "Pozycja (Wykres)",
@@ -155,27 +208,47 @@ fun PlayerSeasonScreen(
                     stats = data.radarChart
                 )
 
+                // Comparison section
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = AppDesign.CardShape,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = AppDesign.CardElevation)
                 ) {
                     Column(
-                        modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                        modifier = Modifier
+                            .padding(AppDesign.CardInnerPadding)
+                            .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
                             text = "Porównanie z innym zawodnikiem",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 8.dp).align(Alignment.Start)
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .padding(bottom = AppDesign.ItemSpacing)
+                                .align(Alignment.Start)
                         )
 
                         if (comparisonPlayer == null) {
                             Button(
                                 onClick = { showPlayerPicker = true },
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp),
+                                shape = AppDesign.ButtonShape,
+                                elevation = ButtonDefaults.buttonElevation(
+                                    defaultElevation = 2.dp,
+                                    pressedElevation = 0.dp
+                                )
                             ) {
-                                Text("Porównaj z innym zawodnikiem")
+                                Text(
+                                    "Porównaj z innym zawodnikiem",
+                                    fontWeight = FontWeight.SemiBold
+                                )
                             }
                         } else {
                             Text(
@@ -183,15 +256,16 @@ fun PlayerSeasonScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier.padding(bottom = 8.dp)
+                                modifier = Modifier.padding(bottom = AppDesign.SmallSpacing)
                             )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(AppDesign.SmallSpacing)
                             ) {
                                 OutlinedButton(
                                     onClick = { showPlayerPicker = true },
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f).height(44.dp),
+                                    shape = AppDesign.ButtonShape
                                 ) {
                                     Text("Zmień zawodnika")
                                 }
@@ -201,7 +275,8 @@ fun PlayerSeasonScreen(
                                         comparisonData = null
                                         comparisonError = null
                                     },
-                                    modifier = Modifier.weight(1f),
+                                    modifier = Modifier.weight(1f).height(44.dp),
+                                    shape = AppDesign.ButtonShape,
                                     colors = ButtonDefaults.outlinedButtonColors(
                                         contentColor = MaterialTheme.colorScheme.error
                                     )
@@ -215,15 +290,18 @@ fun PlayerSeasonScreen(
 
                 if (isComparisonLoading) {
                     Box(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = AppDesign.ContentPadding),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                            CircularProgressIndicator(modifier = Modifier.size(32.dp), strokeWidth = 3.dp)
                             Text(
                                 text = "Ładowanie danych porównania...",
                                 style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(top = 8.dp)
+                                modifier = Modifier.padding(top = AppDesign.SmallSpacing),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -231,13 +309,16 @@ fun PlayerSeasonScreen(
 
                 comparisonError?.let { err ->
                     Card(
-                        modifier = Modifier.fillMaxWidth().padding(8.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = AppDesign.CardShapeSmall,
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
                     ) {
                         Text(
                             text = "Błąd porównania: $err",
                             color = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.padding(12.dp),
+                            modifier = Modifier.padding(AppDesign.ContentPadding),
                             style = MaterialTheme.typography.bodySmall
                         )
                     }

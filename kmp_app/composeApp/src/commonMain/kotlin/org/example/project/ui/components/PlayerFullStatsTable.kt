@@ -2,8 +2,6 @@ package org.example.project.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -17,72 +15,52 @@ import androidx.compose.ui.unit.dp
 import org.example.project.data.model.FullTableStatItem
 import org.example.project.ui.utils.STATS_CATEGORIES
 import org.example.project.ui.utils.toFormattedString
+import org.example.project.ui.theme.AppDesign
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 
 @Composable
 fun PlayerFullStatsTable(stats: List<FullTableStatItem>) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        modifier = Modifier.fillMaxWidth().padding(AppDesign.SmallSpacing),
+        shape = AppDesign.CardShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDesign.CardElevation)
     ) {
-        Column(modifier = Modifier.padding(8.dp)) {
+        Column(modifier = Modifier.padding(AppDesign.CardInnerPadding)) {
             Text(
                 text = "Pełne Statystyki Sezonowe",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier.padding(bottom = AppDesign.ItemSpacing)
             )
 
             // Nagłówek tabeli
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Statystyka", Modifier.weight(2f), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
-                Text("Suma", Modifier.weight(0.8f), textAlign = TextAlign.End, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
-                Text("Na 90m", Modifier.weight(0.8f), textAlign = TextAlign.End, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
-                Text("Percentyl", Modifier.weight(1.5f), textAlign = TextAlign.End, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
-            }
-            
-            Divider()
+            TableHeaderRow()
+
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
 
             // Wiersze Pogrupowane wg Kategorii
             STATS_CATEGORIES.forEach { (catName, keys) ->
                 val catStats = stats.filter { it.statKey in keys }
                 if (catStats.isNotEmpty()) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(start = 8.dp, top = 16.dp, bottom = 4.dp)
-                    ) {
-                        val icon = when (catName) {
-                            "Ogólne" -> Icons.Default.Info
-                            "Bramki i xG" -> Icons.Default.Star
-                            "Bramkarskie" -> Icons.Default.Lock
-                            "Strzały" -> Icons.Default.Send
-                            "Podania i Kreacja" -> Icons.Default.Share
-                            "Drybling i Pojedynki" -> Icons.Default.Person
-                            "Defensywa" -> Icons.Default.Warning
-                            else -> Icons.Default.List
-                        }
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = catName,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp).padding(end = 4.dp)
-                        )
-                        Text(
-                            text = catName,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    Divider(thickness = 2.dp, color = MaterialTheme.colorScheme.primary.copy(alpha=0.3f))
+                    CategoryHeader(catName = catName)
+
+                    HorizontalDivider(
+                        thickness = 2.dp,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                    )
                     
                     catStats.forEach { stat ->
                         FullStatTableRow(stat)
-                        Divider(color = Color.LightGray.copy(alpha = 0.3f))
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        )
                     }
                 }
             }
@@ -91,18 +69,109 @@ fun PlayerFullStatsTable(stats: List<FullTableStatItem>) {
             val mappedKeys = STATS_CATEGORIES.values.flatten()
             val otherStats = stats.filter { it.statKey !in mappedKeys }
             if (otherStats.isNotEmpty()) {
-                Text(
-                    text = "Inne",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 8.dp, top = 16.dp, bottom = 4.dp)
+                CategoryHeader(catName = "Inne")
+
+                HorizontalDivider(
+                    thickness = 2.dp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
                 )
-                Divider(thickness = 2.dp, color = MaterialTheme.colorScheme.primary.copy(alpha=0.3f))
+
                 otherStats.forEach { stat ->
                     FullStatTableRow(stat)
-                    Divider(color = Color.LightGray.copy(alpha = 0.3f))
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TableHeaderRow() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = AppDesign.SmallSpacing, vertical = AppDesign.SmallSpacing),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "Statystyka",
+            Modifier.weight(2f),
+            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            "Suma",
+            Modifier.weight(0.8f),
+            textAlign = TextAlign.End,
+            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            "Na 90m",
+            Modifier.weight(0.8f),
+            textAlign = TextAlign.End,
+            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            "Percentyl",
+            Modifier.weight(1.5f),
+            textAlign = TextAlign.End,
+            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun CategoryHeader(catName: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(
+            start = AppDesign.SmallSpacing,
+            top = AppDesign.SectionSpacing,
+            bottom = AppDesign.SmallSpacing
+        )
+    ) {
+        val icon = when (catName) {
+            "Ogólne" -> Icons.Default.Info
+            "Bramki i xG" -> Icons.Default.Star
+            "Bramkarskie" -> Icons.Default.Lock
+            "Strzały" -> Icons.AutoMirrored.Filled.Send
+            "Podania i Kreacja" -> Icons.Default.Share
+            "Drybling i Pojedynki" -> Icons.Default.Person
+            "Defensywa" -> Icons.Default.Warning
+            else -> Icons.AutoMirrored.Filled.List
+        }
+
+        Surface(
+            shape = AppDesign.ChipShape,
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+            modifier = Modifier.padding(end = AppDesign.SmallSpacing)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = catName,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(AppDesign.IconSizeSmall)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = catName,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
@@ -119,7 +188,9 @@ private fun FullStatTableRow(stat: FullTableStatItem) {
     }
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = AppDesign.SmallSpacing, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -131,13 +202,15 @@ private fun FullStatTableRow(stat: FullTableStatItem) {
             text = stat.totalValue.toFormattedString(),
             modifier = Modifier.weight(0.8f),
             textAlign = TextAlign.End,
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium
         )
         Text(
             text = stat.p90Value.toFormattedString(),
             modifier = Modifier.weight(0.8f),
             textAlign = TextAlign.End,
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium
         )
         
         // Percentyl z mikropaskiem
@@ -148,21 +221,20 @@ private fun FullStatTableRow(stat: FullTableStatItem) {
         ) {
             Box(
                 modifier = Modifier
-                    .width(40.dp)
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(Color.Gray.copy(alpha = 0.2f))
-                    .padding(end = 4.dp)
+                    .width(44.dp)
+                    .height(AppDesign.BarHeightSmall)
+                    .clip(AppDesign.BarShape)
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(stat.percentile / 100f)
                         .fillMaxHeight()
-                        .clip(RoundedCornerShape(3.dp))
+                        .clip(AppDesign.BarShape)
                         .background(barColor)
                 )
             }
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "${stat.percentile}",
                 style = MaterialTheme.typography.bodySmall,

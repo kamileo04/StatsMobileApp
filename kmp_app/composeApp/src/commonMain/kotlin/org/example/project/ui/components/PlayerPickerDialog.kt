@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.example.project.data.model.Player
 import org.example.project.data.repository.SofaRepository
+import org.example.project.ui.theme.AppDesign
 
 
 @Composable
@@ -57,24 +58,31 @@ fun PlayerPickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        shape = AppDesign.CardShape,
         title = {
             Text(
                 "Wybierz zawodnika do porównania",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
             )
         },
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(AppDesign.ItemSpacing)
             ) {
                 if (teamsLoading) {
                     Box(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = AppDesign.ContentPadding),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            strokeWidth = 3.dp
+                        )
                     }
                 } else {
                     AppDropdownSelect(
@@ -87,10 +95,15 @@ fun PlayerPickerDialog(
 
                     if (playersLoading) {
                         Box(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = AppDesign.SmallSpacing),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
                         }
                     } else if (selectedTeam != null && players.isNotEmpty()) {
                         AppDropdownSelect(
@@ -105,12 +118,23 @@ fun PlayerPickerDialog(
                     }
 
                     selectedPlayer?.let { player ->
-                        Text(
-                            text = "Wybrany: ${player.name} (ID: ${player.id})",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Card(
+                            shape = AppDesign.ChipShape,
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                            )
+                        ) {
+                            Text(
+                                text = "Wybrany: ${player.name} (ID: ${player.id})",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(
+                                    horizontal = AppDesign.ItemSpacing,
+                                    vertical = AppDesign.SmallSpacing
+                                )
+                            )
+                        }
                     }
                 }
 
@@ -128,13 +152,17 @@ fun PlayerPickerDialog(
                 onClick = {
                     selectedPlayer?.let { onPlayerSelected(it) }
                 },
-                enabled = selectedPlayer != null
+                enabled = selectedPlayer != null,
+                shape = AppDesign.ButtonShape
             ) {
-                Text("Wybierz")
+                Text("Wybierz", fontWeight = FontWeight.SemiBold)
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
+            OutlinedButton(
+                onClick = onDismiss,
+                shape = AppDesign.ButtonShape
+            ) {
                 Text("Anuluj")
             }
         }

@@ -2,7 +2,6 @@ package org.example.project.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -12,27 +11,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.example.project.data.model.RadarStatItem
 import org.example.project.ui.utils.toFormattedString
+import org.example.project.ui.theme.AppDesign
 
 @Composable
 fun PlayerPercentileChart(title: String, stats: List<RadarStatItem>) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        modifier = Modifier.fillMaxWidth().padding(AppDesign.SmallSpacing),
+        shape = AppDesign.CardShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDesign.CardElevation)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(AppDesign.CardInnerPadding + 4.dp)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = AppDesign.ContentPadding)
             )
 
             stats.forEach { stat ->
                 PercentileBarRow(stat)
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDesign.ItemSpacing))
             }
         }
     }
@@ -64,33 +65,34 @@ private fun PercentileBarRow(stat: RadarStatItem) {
                 text = stat.value.toFormattedString(),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 8.dp)
+                modifier = Modifier.padding(horizontal = 10.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "${stat.percentile}",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Black,
                 color = barColor,
-                modifier = Modifier.width(32.dp),
+                modifier = Modifier.width(36.dp),
                 textAlign = TextAlign.End
             )
         }
         
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         
         // Pasek postępu
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.Gray.copy(alpha = 0.3f))
+                .height(AppDesign.BarHeight)
+                .clip(AppDesign.BarShape)
+                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(stat.percentile / 100f)
                     .fillMaxHeight()
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(AppDesign.BarShape)
                     .background(barColor)
             )
         }

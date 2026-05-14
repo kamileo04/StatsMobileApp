@@ -24,7 +24,10 @@ import org.example.project.ui.utils.LOWER_IS_BETTER_STATS
 import org.example.project.ui.utils.STATS_CATEGORIES
 import org.example.project.ui.utils.mapStatKeyToPolish
 import org.example.project.ui.utils.toFormattedString
+import org.example.project.ui.theme.AppDesign
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 
 data class MatchComparisonRow(
@@ -111,41 +114,97 @@ fun MatchReportScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(8.dp)) {
-        Button(onClick = onBackClick, modifier = Modifier.padding(bottom = 8.dp)) {
-            Text("Powrót")
-        }
-
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(AppDesign.ScreenPadding)
+    ) {
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(modifier = Modifier.size(40.dp), strokeWidth = 3.dp)
+                    Spacer(modifier = Modifier.height(AppDesign.ItemSpacing))
+                    Text(
+                        "Ładowanie raportu...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         } else if (errorMessage != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "Błąd: $errorMessage", color = MaterialTheme.colorScheme.error)
+                Card(
+                    shape = AppDesign.CardShape,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = "Błąd: $errorMessage",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(AppDesign.CardInnerPadding)
+                    )
+                }
             }
         } else if (matchInfo != null) {
-            Text(
-                text = matchInfo!!.label,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp, start = 8.dp)
-            )
+            // Match title header
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(bottom = AppDesign.ItemSpacing),
+                shape = AppDesign.CardShape,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = AppDesign.CardElevation)
+            ) {
+                Text(
+                    text = matchInfo!!.label,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.padding(AppDesign.CardInnerPadding)
+                )
+            }
 
             Card(
                 modifier = Modifier.fillMaxSize(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                shape = AppDesign.CardShape,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = AppDesign.CardElevation)
             ) {
-                Column(modifier = Modifier.padding(8.dp)) {
+                Column(modifier = Modifier.padding(AppDesign.CardInnerPadding)) {
+                    // Table header
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = AppDesign.SmallSpacing),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Statystyka", Modifier.weight(2f), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
-                        Text("Mecz", Modifier.weight(1f), textAlign = TextAlign.End, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
-                        Text("Średnia (Sezon)", Modifier.weight(1.2f), textAlign = TextAlign.End, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            "Statystyka",
+                            Modifier.weight(2f),
+                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            "Mecz",
+                            Modifier.weight(1f),
+                            textAlign = TextAlign.End,
+                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            "Średnia (Sezon)",
+                            Modifier.weight(1.2f),
+                            textAlign = TextAlign.End,
+                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                    Divider()
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         
@@ -153,38 +212,17 @@ fun MatchReportScreen(
                             val catRows = comparisonRows.filter { it.key in keys }
                             if (catRows.isNotEmpty()) {
                                 item {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.padding(start = 8.dp, top = 16.dp, bottom = 4.dp)
-                                    ) {
-                                        val icon = when (catName) {
-                                            "Ogólne" -> Icons.Default.Info
-                                            "Bramki i xG" -> Icons.Default.Star
-                                            "Bramkarskie" -> Icons.Default.Lock
-                                            "Strzały" -> Icons.Default.Send
-                                            "Podania i Kreacja" -> Icons.Default.Share
-                                            "Drybling i Pojedynki" -> Icons.Default.Person
-                                            "Defensywa" -> Icons.Default.Warning
-                                            else -> Icons.Default.List
-                                        }
-                                        Icon(
-                                            imageVector = icon,
-                                            contentDescription = catName,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(18.dp).padding(end = 4.dp)
-                                        )
-                                        Text(
-                                            text = catName,
-                                            style = MaterialTheme.typography.titleSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                    Divider(thickness = 2.dp, color = MaterialTheme.colorScheme.primary.copy(alpha=0.3f))
+                                    MatchCategoryHeader(catName = catName)
+                                    HorizontalDivider(
+                                        thickness = 2.dp,
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                                    )
                                 }
                                 items(catRows) { row ->
                                     MatchRowUI(row)
-                                    Divider(color = Color.LightGray.copy(alpha = 0.3f))
+                                    HorizontalDivider(
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                    )
                                 }
                             }
                         }
@@ -197,9 +235,58 @@ fun MatchReportScreen(
 }
 
 @Composable
+private fun MatchCategoryHeader(catName: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(
+            start = AppDesign.SmallSpacing,
+            top = AppDesign.SectionSpacing,
+            bottom = AppDesign.SmallSpacing
+        )
+    ) {
+        val icon = when (catName) {
+            "Ogólne" -> Icons.Default.Info
+            "Bramki i xG" -> Icons.Default.Star
+            "Bramkarskie" -> Icons.Default.Lock
+            "Strzały" -> Icons.AutoMirrored.Filled.Send
+            "Podania i Kreacja" -> Icons.Default.Share
+            "Drybling i Pojedynki" -> Icons.Default.Person
+            "Defensywa" -> Icons.Default.Warning
+            else -> Icons.AutoMirrored.Filled.List
+        }
+
+        Surface(
+            shape = AppDesign.ChipShape,
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = catName,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(AppDesign.IconSizeSmall)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = catName,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun MatchRowUI(row: MatchComparisonRow) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = AppDesign.ItemSpacing, horizontal = AppDesign.TinySpacing),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -222,7 +309,7 @@ fun MatchRowUI(row: MatchComparisonRow) {
                 match = row.matchValue,
                 season = row.seasonAvg,
                 isLowerBetter = LOWER_IS_BETTER_STATS.contains(row.key),
-                modifier = Modifier.width(40.dp)
+                modifier = Modifier.width(44.dp)
             )
         }
         Text(
@@ -248,16 +335,16 @@ fun ComparisonBar(match: Double, season: Double, isLowerBetter: Boolean, modifie
     
     Box(
         modifier = modifier
-            .height(4.dp)
-            .clip(RoundedCornerShape(2.dp))
-            .background(Color.LightGray.copy(alpha=0.5f))
+            .height(AppDesign.MiniBarHeight)
+            .clip(AppDesign.BarShape)
+            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
     ) {
         Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth(ratio)
+                .clip(AppDesign.BarShape)
                 .background(color)
-                .clip(RoundedCornerShape(2.dp))
         )
     }
 }

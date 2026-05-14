@@ -15,6 +15,7 @@ import org.example.project.data.model.PlayerPercentilesResponse
 import org.example.project.data.repository.SofaRepository
 import org.example.project.ui.components.AppDropdownSelect
 import org.example.project.ui.components.PlayersCompareChart
+import org.example.project.ui.theme.AppDesign
 
 @Composable
 fun ComparePlayersScreen(
@@ -130,33 +131,56 @@ fun ComparePlayersScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(8.dp)) {
-        Button(onClick = onBackClick, modifier = Modifier.padding(bottom = 8.dp)) {
-            Text("Powrót")
-        }
-
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = AppDesign.ScreenPadding, vertical = AppDesign.SmallSpacing)
+    ) {
         if (isTeamsLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(modifier = Modifier.size(40.dp), strokeWidth = 3.dp)
+                    Spacer(modifier = Modifier.height(AppDesign.ItemSpacing))
+                    Text(
+                        "Ładowanie drużyn...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         } else {
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                
+            Column(
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(AppDesign.ItemSpacing)
+            ) {
                 Text(
                     text = "Porównanie zawodników",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(vertical = AppDesign.TinySpacing)
                 )
 
                 // Filtry wspólne dla obu
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = AppDesign.CardShape,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = AppDesign.CardElevation)
                 ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text("Personalizacja porównania", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom=8.dp))
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(modifier = Modifier.padding(AppDesign.CardInnerPadding)) {
+                        Text(
+                            "Personalizacja porównania",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(bottom = AppDesign.SmallSpacing)
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(AppDesign.SmallSpacing)
+                        ) {
                             Box(modifier = Modifier.weight(1f)) {
                                 AppDropdownSelect(
                                     label = "Pozycja",
@@ -178,66 +202,49 @@ fun ComparePlayersScreen(
                 }
 
                 // Gracz 1 Wybór
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text("Zawodnik 1", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom=4.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                AppDropdownSelect(
-                                    label = "Drużyna",
-                                    options = teams,
-                                    selectedOption = selectedTeam1 ?: "",
-                                    onOptionSelected = { selectedTeam1 = it }
-                                )
-                            }
-                            Box(modifier = Modifier.weight(1f)) {
-                                AppDropdownSelect(
-                                    label = "Zawodnik",
-                                    options = players1.map { it.name },
-                                    selectedOption = selectedPlayer1?.name ?: "Wybierz zawodnika",
-                                    onOptionSelected = { name -> selectedPlayer1 = players1.find { it.name == name } }
-                                )
-                            }
-                        }
-                    }
-                }
+                PlayerSelectionCard(
+                    label = "Zawodnik 1",
+                    teams = teams,
+                    selectedTeam = selectedTeam1,
+                    onTeamSelected = { selectedTeam1 = it },
+                    players = players1,
+                    selectedPlayer = selectedPlayer1,
+                    onPlayerSelected = { name -> selectedPlayer1 = players1.find { it.name == name } }
+                )
 
                 // Gracz 2 Wybór
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text("Zawodnik 2", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom=4.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                AppDropdownSelect(
-                                    label = "Drużyna",
-                                    options = teams,
-                                    selectedOption = selectedTeam2 ?: "",
-                                    onOptionSelected = { selectedTeam2 = it }
-                                )
-                            }
-                            Box(modifier = Modifier.weight(1f)) {
-                                AppDropdownSelect(
-                                    label = "Zawodnik",
-                                    options = players2.map { it.name },
-                                    selectedOption = selectedPlayer2?.name ?: "Wybierz zawodnika",
-                                    onOptionSelected = { name -> selectedPlayer2 = players2.find { it.name == name } }
-                                )
-                            }
-                        }
-                    }
-                }
+                PlayerSelectionCard(
+                    label = "Zawodnik 2",
+                    teams = teams,
+                    selectedTeam = selectedTeam2,
+                    onTeamSelected = { selectedTeam2 = it },
+                    players = players2,
+                    selectedPlayer = selectedPlayer2,
+                    onPlayerSelected = { name -> selectedPlayer2 = players2.find { it.name == name } }
+                )
 
                 if (errorMessage != null) {
-                    Text(text = "Błąd: $errorMessage", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(8.dp))
+                    Card(
+                        shape = AppDesign.CardShapeSmall,
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        Text(
+                            text = "Błąd: $errorMessage",
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(AppDesign.ContentPadding),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
 
                 if (isPlayer1Loading || isPlayer2Loading) {
-                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(AppDesign.ContentPadding),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(32.dp), strokeWidth = 3.dp)
                     }
                 } else if (percentilesData1 != null && percentilesData2 != null) {
                     val data1 = percentilesData1!!
@@ -251,10 +258,67 @@ fun ComparePlayersScreen(
                         stats2 = data2.radarChart
                     )
                 } else if (percentilesData1 != null) {
-                    Text(
-                        text = "Wybierz drugiego zawodnika do porównania",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(16.dp)
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = AppDesign.CardShapeSmall,
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ) {
+                        Text(
+                            text = "Wybierz drugiego zawodnika do porównania",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(AppDesign.ContentPadding)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PlayerSelectionCard(
+    label: String,
+    teams: List<String>,
+    selectedTeam: String?,
+    onTeamSelected: (String) -> Unit,
+    players: List<Player>,
+    selectedPlayer: Player?,
+    onPlayerSelected: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = AppDesign.CardShape,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDesign.CardElevation)
+    ) {
+        Column(modifier = Modifier.padding(AppDesign.CardInnerPadding)) {
+            Text(
+                label,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = AppDesign.TinySpacing)
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(AppDesign.SmallSpacing)) {
+                Box(modifier = Modifier.weight(1f)) {
+                    AppDropdownSelect(
+                        label = "Drużyna",
+                        options = teams,
+                        selectedOption = selectedTeam ?: "",
+                        onOptionSelected = onTeamSelected
+                    )
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    AppDropdownSelect(
+                        label = "Zawodnik",
+                        options = players.map { it.name },
+                        selectedOption = selectedPlayer?.name ?: "Wybierz zawodnika",
+                        onOptionSelected = onPlayerSelected
                     )
                 }
             }

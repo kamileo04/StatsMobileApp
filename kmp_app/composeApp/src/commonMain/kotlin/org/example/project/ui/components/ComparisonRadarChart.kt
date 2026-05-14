@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.example.project.data.model.RadarStatItem
+import org.example.project.ui.theme.AppDesign
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -42,28 +44,36 @@ fun ComparisonRadarChart(
     val primaryColor = MaterialTheme.colorScheme.primary   
     val secondaryColor = MaterialTheme.colorScheme.secondary 
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+    val gridColor = MaterialTheme.colorScheme.outlineVariant
     val textMeasurer = rememberTextMeasurer()
 
     val labels = playerAStats.map { it.label }
     val numPoints = labels.size
 
     Card(
-        modifier = modifier.fillMaxWidth().padding(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        modifier = modifier.fillMaxWidth().padding(AppDesign.SmallSpacing),
+        shape = AppDesign.CardShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDesign.CardElevation)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            modifier = Modifier.padding(AppDesign.CardInnerPadding + 4.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 8.dp).align(Alignment.Start)
+                modifier = Modifier
+                    .padding(bottom = AppDesign.SmallSpacing)
+                    .align(Alignment.Start)
             )
 
+            // Legend row
             Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = AppDesign.ItemSpacing),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -73,7 +83,7 @@ fun ComparisonRadarChart(
             }
 
             // Wykres
-            Box(modifier = Modifier.fillMaxWidth().aspectRatio(1.2f).padding(16.dp)) {
+            Box(modifier = Modifier.fillMaxWidth().aspectRatio(1.2f).padding(AppDesign.ContentPadding)) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val center = Offset(size.width / 2, size.height / 2)
                     val radius = size.minDimension / 2f
@@ -93,8 +103,8 @@ fun ComparisonRadarChart(
                         path.close()
                         drawPath(
                             path,
-                            color = Color.Gray.copy(alpha = 0.3f),
-                            style = Stroke(width = 1.dp.toPx())
+                            color = gridColor.copy(alpha = 0.5f),
+                            style = Stroke(width = 0.8.dp.toPx())
                         )
                     }
 
@@ -105,10 +115,10 @@ fun ComparisonRadarChart(
 
                         // Oś
                         drawLine(
-                            color = Color.Gray.copy(alpha = 0.5f),
+                            color = gridColor.copy(alpha = 0.6f),
                             start = center,
                             end = Offset(x, y),
-                            strokeWidth = 1.dp.toPx()
+                            strokeWidth = 0.8.dp.toPx()
                         )
 
                         // Etykieta
@@ -137,7 +147,7 @@ fun ComparisonRadarChart(
                         angleStep = angleStep,
                         fillColor = primaryColor.copy(alpha = 0.25f),
                         strokeColor = primaryColor,
-                        strokeWidth = 2.dp.toPx()
+                        strokeWidth = 2.5.dp.toPx()
                     )
 
                     drawRadarShape(
@@ -147,20 +157,27 @@ fun ComparisonRadarChart(
                         angleStep = angleStep,
                         fillColor = secondaryColor.copy(alpha = 0.20f),
                         strokeColor = secondaryColor,
-                        strokeWidth = 2.dp.toPx()
+                        strokeWidth = 2.5.dp.toPx()
                     )
                 }
             }
 
-            Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+            // Data table below the chart
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = AppDesign.SmallSpacing),
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         text = "Statystyka",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1.4f)
                     )
                     Text(
@@ -183,7 +200,7 @@ fun ComparisonRadarChart(
                 playerAStats.forEach { aStat ->
                     val bStat = bByKey[aStat.statKey]
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
@@ -217,11 +234,11 @@ private fun LegendItem(color: Color, name: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier = Modifier
-                .size(12.dp)
+                .size(14.dp)
                 .clip(CircleShape)
                 .background(color)
         )
-        Spacer(modifier = Modifier.width(6.dp))
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = name,
             style = MaterialTheme.typography.bodySmall,

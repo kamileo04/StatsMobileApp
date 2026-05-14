@@ -20,6 +20,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.example.project.data.model.RadarStatItem
+import org.example.project.ui.theme.AppDesign
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.PI
@@ -34,24 +35,29 @@ fun PlayerRadarChart(
 
     val primaryColor = MaterialTheme.colorScheme.primary
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+    val gridColor = MaterialTheme.colorScheme.outlineVariant
     val textMeasurer = rememberTextMeasurer()
 
     Card(
-        modifier = modifier.fillMaxWidth().padding(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        modifier = modifier.fillMaxWidth().padding(AppDesign.SmallSpacing),
+        shape = AppDesign.CardShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppDesign.CardElevation)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            modifier = Modifier.padding(AppDesign.CardInnerPadding + 4.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp).align(Alignment.Start)
+                modifier = Modifier
+                    .padding(bottom = AppDesign.ContentPadding)
+                    .align(Alignment.Start)
             )
 
-            Box(modifier = Modifier.fillMaxWidth().aspectRatio(1.2f).padding(16.dp)) {
+            Box(modifier = Modifier.fillMaxWidth().aspectRatio(1.2f).padding(AppDesign.ContentPadding)) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val center = Offset(size.width / 2, size.height / 2)
                     val radius = size.minDimension / 2f
@@ -73,8 +79,8 @@ fun PlayerRadarChart(
                         path.close()
                         drawPath(
                             path,
-                            color = Color.Gray.copy(alpha = 0.3f),
-                            style = Stroke(width = 1.dp.toPx())
+                            color = gridColor.copy(alpha = 0.5f),
+                            style = Stroke(width = 0.8.dp.toPx())
                         )
                     }
 
@@ -84,10 +90,10 @@ fun PlayerRadarChart(
                         val x = center.x + radius * cos(angle)
                         val y = center.y + radius * sin(angle)
                         drawLine(
-                            color = Color.Gray.copy(alpha = 0.5f),
+                            color = gridColor.copy(alpha = 0.6f),
                             start = center,
                             end = Offset(x, y),
-                            strokeWidth = 1.dp.toPx()
+                            strokeWidth = 0.8.dp.toPx()
                         )
 
                         // Draw labels
@@ -123,8 +129,8 @@ fun PlayerRadarChart(
                     }
                     dataPath.close()
 
-                    drawPath(dataPath, color = primaryColor.copy(alpha = 0.4f))
-                    drawPath(dataPath, color = primaryColor, style = Stroke(width = 2.dp.toPx()))
+                    drawPath(dataPath, color = primaryColor.copy(alpha = 0.35f))
+                    drawPath(dataPath, color = primaryColor, style = Stroke(width = 2.5.dp.toPx()))
                 }
             }
         }
