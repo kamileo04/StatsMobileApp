@@ -15,6 +15,7 @@ import org.example.project.data.repository.SofaRepository
 import org.example.project.ui.components.AppDropdownSelect
 import org.example.project.ui.components.PlayerFullStatsTable
 import org.example.project.ui.components.PlayerPercentileChart
+import org.example.project.ui.components.PlayerRadarChart
 
 @Composable
 fun PlayerSeasonScreen(
@@ -107,6 +108,12 @@ fun PlayerSeasonScreen(
                 // Wykres Słupkowy Percentyli dla wybranej pozycji (Zastępstwo dla Pizza Chart)
                 PlayerPercentileChart(
                     title = "Profil (${data.position}) vs $selectedMinMinutes+ min", 
+                    stats = data.radarChart
+                )
+
+                // Radar Chart
+                PlayerRadarChart(
+                    title = "Radar Chart (${data.position})",
                     stats = data.radarChart
                 )
                 
