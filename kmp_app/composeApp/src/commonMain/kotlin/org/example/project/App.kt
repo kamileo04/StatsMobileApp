@@ -450,21 +450,7 @@ fun App() {
                             Text("Pokaż wykresy powiązane z pozycją gracza")
                         }
 
-                        Button(
-                            onClick = { navigateTo(Screen.Favorites) },
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                        ) {
-                            Text("Pokaż listę ulubionych zawodników")
-                        }
 
-                        Button(
-                            onClick = {
-                                navigateTo(Screen.ComparePlayers(selectedPlayer?.id))
-                            },
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                        ) {
-                            Text("Porównaj zawodników")
-                        }
 
                         statusMessage?.let {
                             Card(modifier = Modifier.fillMaxWidth()) {
