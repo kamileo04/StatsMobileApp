@@ -171,9 +171,12 @@ fun App() {
 
     BackHandler(isEnabled = screenStack.size > 1, onBack = popScreen)
 
+    val isWebPlatform = remember { getPlatform().name.contains("Web") }
+
     MaterialTheme(colorScheme = if (isDarkMode) DarkColorScheme else CustomColorScheme) {
         Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
             topBar = {
                 TopAppBar(
                     title = {
@@ -188,8 +191,14 @@ fun App() {
                     ),
                     actions = {
                         Box {
-                            IconButton(onClick = { showSettingsMenu = true }) {
-                                Text("⚙️", style = MaterialTheme.typography.titleLarge)
+                            if (isWebPlatform) {
+                                TextButton(onClick = { showSettingsMenu = true }) {
+                                    Text("Ustawienia", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                }
+                            } else {
+                                IconButton(onClick = { showSettingsMenu = true }) {
+                                    Text("⚙️", style = MaterialTheme.typography.titleLarge)
+                                }
                             }
                             DropdownMenu(
                                 expanded = showSettingsMenu,
@@ -208,9 +217,18 @@ fun App() {
                 )
             }
         ) { innerPadding ->
-            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+            Box(
+                modifier = Modifier.padding(innerPadding).fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                val contentModifier = if (isWebPlatform) {
+                    Modifier.fillMaxHeight().widthIn(max = 800.dp)
+                } else {
+                    Modifier.fillMaxSize()
+                }
 
-                if (!isLoggedIn) {
+                Box(modifier = contentModifier) {
+                    if (!isLoggedIn) {
                     // ===== EKRAN LOGOWANIA =====
                     Column(
                         modifier = Modifier
@@ -345,18 +363,35 @@ fun App() {
                             if (selectedPlayer != null) {
                                 val player = selectedPlayer!!
                                 val isFav = favoritePlayers.any { it.id == player.id }
-                                IconButton(
-                                    onClick = {
-                                        favoritesRepository.toggleFavorite(player)
-                                        favoritePlayers = favoritesRepository.getFavoritePlayers()
-                                    },
-                                    modifier = Modifier.padding(start = 8.dp)
-                                ) {
-                                    Text(
-                                        text = if (isFav) "★" else "☆",
-                                        style = MaterialTheme.typography.headlineMedium,
-                                        color = if (isFav) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onBackground
-                                    )
+                                val isWeb = getPlatform().name.contains("Web")
+                                if (isWeb) {
+                                    TextButton(
+                                        onClick = {
+                                            favoritesRepository.toggleFavorite(player)
+                                            favoritePlayers = favoritesRepository.getFavoritePlayers()
+                                        },
+                                        modifier = Modifier.padding(start = 8.dp)
+                                    ) {
+                                        Text(
+                                            text = if (isFav) "Usuń z ulub." else "Do ulubionych",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = if (isFav) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                } else {
+                                    IconButton(
+                                        onClick = {
+                                            favoritesRepository.toggleFavorite(player)
+                                            favoritePlayers = favoritesRepository.getFavoritePlayers()
+                                        },
+                                        modifier = Modifier.padding(start = 8.dp)
+                                    ) {
+                                        Text(
+                                            text = if (isFav) "★" else "☆",
+                                            style = MaterialTheme.typography.headlineMedium,
+                                            color = if (isFav) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onBackground
+                                        )
+                                    }
                                 }
                             } else {
                                 Spacer(modifier = Modifier.width(56.dp))
@@ -476,6 +511,7 @@ fun App() {
                         }
                     }
                 }
+                } // end content Box
             }
         } // end Scaffold
 

@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import org.example.project.data.model.RadarStatItem
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.PI
 
 @Composable
 fun PlayerRadarChart(
@@ -56,7 +57,7 @@ fun PlayerRadarChart(
                     val radius = size.minDimension / 2f
 
                     val numPoints = stats.size
-                    val angleStep = (2 * Math.PI / numPoints).toFloat()
+                    val angleStep = (2 * PI / numPoints).toFloat()
 
                     // Draw grid lines
                     val numRings = 5
@@ -64,7 +65,7 @@ fun PlayerRadarChart(
                         val r = radius * (i.toFloat() / numRings)
                         val path = Path()
                         for (j in 0 until numPoints) {
-                            val angle = j * angleStep - Math.PI.toFloat() / 2f
+                            val angle = j * angleStep - PI.toFloat() / 2f
                             val x = center.x + r * cos(angle)
                             val y = center.y + r * sin(angle)
                             if (j == 0) path.moveTo(x, y) else path.lineTo(x, y)
@@ -79,7 +80,7 @@ fun PlayerRadarChart(
 
                     // Draw axes and labels
                     for (i in 0 until numPoints) {
-                        val angle = i * angleStep - Math.PI.toFloat() / 2f
+                        val angle = i * angleStep - PI.toFloat() / 2f
                         val x = center.x + radius * cos(angle)
                         val y = center.y + radius * sin(angle)
                         drawLine(
@@ -114,7 +115,7 @@ fun PlayerRadarChart(
                         val stat = stats[i]
                         val percentile = stat.percentile.toFloat().coerceIn(0f, 100f) / 100f
                         val r = radius * percentile
-                        val angle = i * angleStep - Math.PI.toFloat() / 2f
+                        val angle = i * angleStep - PI.toFloat() / 2f
                         val x = center.x + r * cos(angle)
                         val y = center.y + r * sin(angle)
 
