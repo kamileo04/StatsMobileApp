@@ -12,6 +12,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 import kotlinx.coroutines.launch
 import org.example.project.data.model.Player
 import org.example.project.data.repository.SofaRepository
@@ -191,14 +195,12 @@ fun App() {
                     ),
                     actions = {
                         Box {
-                            if (isWebPlatform) {
-                                TextButton(onClick = { showSettingsMenu = true }) {
-                                    Text("Ustawienia", color = MaterialTheme.colorScheme.onPrimaryContainer)
-                                }
-                            } else {
-                                IconButton(onClick = { showSettingsMenu = true }) {
-                                    Text("⚙️", style = MaterialTheme.typography.titleLarge)
-                                }
+                            IconButton(onClick = { showSettingsMenu = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = "Ustawienia",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
                             }
                             DropdownMenu(
                                 expanded = showSettingsMenu,
@@ -363,35 +365,18 @@ fun App() {
                             if (selectedPlayer != null) {
                                 val player = selectedPlayer!!
                                 val isFav = favoritePlayers.any { it.id == player.id }
-                                val isWeb = getPlatform().name.contains("Web")
-                                if (isWeb) {
-                                    TextButton(
-                                        onClick = {
-                                            favoritesRepository.toggleFavorite(player)
-                                            favoritePlayers = favoritesRepository.getFavoritePlayers()
-                                        },
-                                        modifier = Modifier.padding(start = 8.dp)
-                                    ) {
-                                        Text(
-                                            text = if (isFav) "Usuń z ulub." else "Do ulubionych",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = if (isFav) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                } else {
-                                    IconButton(
-                                        onClick = {
-                                            favoritesRepository.toggleFavorite(player)
-                                            favoritePlayers = favoritesRepository.getFavoritePlayers()
-                                        },
-                                        modifier = Modifier.padding(start = 8.dp)
-                                    ) {
-                                        Text(
-                                            text = if (isFav) "★" else "☆",
-                                            style = MaterialTheme.typography.headlineMedium,
-                                            color = if (isFav) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onBackground
-                                        )
-                                    }
+                                IconButton(
+                                    onClick = {
+                                        favoritesRepository.toggleFavorite(player)
+                                        favoritePlayers = favoritesRepository.getFavoritePlayers()
+                                    },
+                                    modifier = Modifier.padding(start = 8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (isFav) Icons.Default.Star else Icons.Outlined.Star,
+                                        contentDescription = if (isFav) "Usuń z ulubionych" else "Dodaj do ulubionych",
+                                        tint = if (isFav) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onBackground
+                                    )
                                 }
                             } else {
                                 Spacer(modifier = Modifier.width(56.dp))

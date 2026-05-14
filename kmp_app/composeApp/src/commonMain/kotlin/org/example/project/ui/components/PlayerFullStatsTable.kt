@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import org.example.project.data.model.FullTableStatItem
 import org.example.project.ui.utils.STATS_CATEGORIES
 import org.example.project.ui.utils.toFormattedString
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 
 @Composable
 fun PlayerFullStatsTable(stats: List<FullTableStatItem>) {
@@ -49,13 +51,33 @@ fun PlayerFullStatsTable(stats: List<FullTableStatItem>) {
             STATS_CATEGORIES.forEach { (catName, keys) ->
                 val catStats = stats.filter { it.statKey in keys }
                 if (catStats.isNotEmpty()) {
-                    Text(
-                        text = catName,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(start = 8.dp, top = 16.dp, bottom = 4.dp)
-                    )
+                    ) {
+                        val icon = when (catName) {
+                            "Ogólne" -> Icons.Default.Info
+                            "Bramki i xG" -> Icons.Default.Star
+                            "Bramkarskie" -> Icons.Default.Lock
+                            "Strzały" -> Icons.Default.Send
+                            "Podania i Kreacja" -> Icons.Default.Share
+                            "Drybling i Pojedynki" -> Icons.Default.Person
+                            "Defensywa" -> Icons.Default.Warning
+                            else -> Icons.Default.List
+                        }
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = catName,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp).padding(end = 4.dp)
+                        )
+                        Text(
+                            text = catName,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                     Divider(thickness = 2.dp, color = MaterialTheme.colorScheme.primary.copy(alpha=0.3f))
                     
                     catStats.forEach { stat ->

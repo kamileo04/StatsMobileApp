@@ -24,6 +24,8 @@ import org.example.project.ui.utils.LOWER_IS_BETTER_STATS
 import org.example.project.ui.utils.STATS_CATEGORIES
 import org.example.project.ui.utils.mapStatKeyToPolish
 import org.example.project.ui.utils.toFormattedString
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 
 data class MatchComparisonRow(
     val key: String,
@@ -151,13 +153,33 @@ fun MatchReportScreen(
                             val catRows = comparisonRows.filter { it.key in keys }
                             if (catRows.isNotEmpty()) {
                                 item {
-                                    Text(
-                                        text = catName,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary,
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier.padding(start = 8.dp, top = 16.dp, bottom = 4.dp)
-                                    )
+                                    ) {
+                                        val icon = when (catName) {
+                                            "Ogólne" -> Icons.Default.Info
+                                            "Bramki i xG" -> Icons.Default.Star
+                                            "Bramkarskie" -> Icons.Default.Lock
+                                            "Strzały" -> Icons.Default.Send
+                                            "Podania i Kreacja" -> Icons.Default.Share
+                                            "Drybling i Pojedynki" -> Icons.Default.Person
+                                            "Defensywa" -> Icons.Default.Warning
+                                            else -> Icons.Default.List
+                                        }
+                                        Icon(
+                                            imageVector = icon,
+                                            contentDescription = catName,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(18.dp).padding(end = 4.dp)
+                                        )
+                                        Text(
+                                            text = catName,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
                                     Divider(thickness = 2.dp, color = MaterialTheme.colorScheme.primary.copy(alpha=0.3f))
                                 }
                                 items(catRows) { row ->
