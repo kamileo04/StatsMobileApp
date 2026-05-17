@@ -1,5 +1,8 @@
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+
 package org.example.project.sensor
 
+import kotlinx.cinterop.useContents
 import platform.CoreMotion.CMMotionManager
 import platform.Foundation.NSOperationQueue
 
@@ -12,7 +15,9 @@ actual class SensorManager {
             motionManager.startAccelerometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
                 val acc = data?.acceleration ?: return@startAccelerometerUpdatesToQueue
                 // iOS axes: x=right, y=up (in portrait). Negate y because iOS y is inverted vs gravity direction needed.
-                onData(SensorData(x = acc.x.toFloat(), y = (-acc.y).toFloat(), z = acc.z.toFloat()))
+                acc.useContents {
+                    onData(SensorData(x = x.toFloat(), y = (-y).toFloat(), z = z.toFloat()))
+                }
             }
         }
     }
