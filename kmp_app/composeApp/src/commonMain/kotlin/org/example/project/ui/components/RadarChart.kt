@@ -51,10 +51,10 @@ fun PlayerRadarChart(
                 modifier = Modifier.padding(bottom = 16.dp).align(Alignment.Start)
             )
 
-            Box(modifier = Modifier.fillMaxWidth().aspectRatio(1.2f).padding(16.dp)) {
+            Box(modifier = Modifier.fillMaxWidth().aspectRatio(1f).padding(horizontal = 8.dp, vertical = 4.dp)) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val center = Offset(size.width / 2, size.height / 2)
-                    val radius = size.minDimension / 2f
+                    val radius = size.minDimension * 0.35f
 
                     val numPoints = stats.size
                     val angleStep = (2 * PI / numPoints).toFloat()
@@ -91,7 +91,7 @@ fun PlayerRadarChart(
                         )
 
                         // Draw labels
-                        val labelRadius = radius * 1.25f
+                        val labelRadius = radius * 1.18f
                         val labelX = center.x + labelRadius * cos(angle)
                         val labelY = center.y + labelRadius * sin(angle)
 
