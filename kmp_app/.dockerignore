@@ -1,0 +1,18 @@
+# Gradle caches
+.gradle/
+.kotlin/
+build/
+composeApp/build/
+
+# iOS
+iosApp/
+
+# IDE
+.idea/
+*.iml
+
+# Secrets
+local.properties
+
+# Git
+.git/
